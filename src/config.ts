@@ -1,50 +1,45 @@
 import 'reflect-metadata';
 
-import { METADATA_PREFIX, RipMetadata } from './metadata';
+import { METADATA_PREFIX } from './metadata';
 import { RipVerb } from './verb';
-import { RipPath } from './args/path';
-import { RipQuery } from './args/query';
+import { RipArg } from './arg';
 
 export class RipConfig {
 
-  public verb: RipVerb;
-  public url: string;
-  public pathes: RipPath[];
-  public queries: RipQuery[];
+  public verb: RipVerb = null;
+
+  public url: string = null;
+
+  public pathes: RipArg[] = [];
+
+  public queries: RipArg[] = [];
+
+  public body: RipArg = null;
 
   public constructor(target, propertyKey: string) {
-    this.findRipDecoratorNames(target, propertyKey)
+    this.findDecoratorNames(target, propertyKey)
       .forEach((decoratorName) => {
-        this.configure(target, propertyKey, decoratorName);
+        this.setValue(target, propertyKey, decoratorName);
       });
   }
 
-  private findRipDecoratorNames(target, propertyKey: string): string[] {
-    const ripDecorators = [];
+  private findDecoratorNames(target, propertyKey: string): string[] {
+    const decorators = [];
     Reflect.getMetadataKeys(target, propertyKey).forEach((name) => {
       if (name.startsWith(METADATA_PREFIX)) {
-        ripDecorators.push(name);
+        decorators.push(name);
       }
     });
-    return ripDecorators;
+    return decorators;
   }
 
-  private configure(target, propertyKey: string, decoratorName: string) {
+  private setValue(target, propertyKey: string, decoratorName: string) {
     const value = Reflect.getMetadata(decoratorName, target, propertyKey);
-    switch (decoratorName) {
-      case RipMetadata.VERB:
-        this.verb = value;
-        break;
-      case RipMetadata.URL:
-        this.url = value;
-        break;
-      case RipMetadata.PATHES:
-        this.pathes = value;
-        break;
-      case RipMetadata.QUERIES:
-        this.queries = value;
-        break;
+    const property = decoratorName.slice(METADATA_PREFIX.length);
+    if (this.hasOwnProperty(property)) {
+      this[property] = value;
+    } else {
+      throw Error('The property \'' + property + '\' doesn\'t exist on configuration');
     }
   }
-
 }

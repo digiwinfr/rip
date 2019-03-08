@@ -1,52 +1,72 @@
 import 'reflect-metadata';
-import { RipPath } from './args/path';
 import { RipConfig } from './config';
 import { RipMetadata } from './metadata';
 import { RipVerb } from './verb';
-import { RipQuery } from './args/query';
+import { RipArg } from './arg';
 
-export const Path = (name: string): any => {
-  return (target, propertyKey: string, index: number) => {
-    const pathes: RipPath[] = Reflect.getOwnMetadata(RipMetadata.PATHES, target, propertyKey) || [];
-    pathes.push(new RipPath(index, name));
-    Reflect.defineMetadata(RipMetadata.PATHES, pathes, target, propertyKey);
-  };
-};
 
-export const Query = (name: string): any => {
-  return (target, propertyKey: string, index: number) => {
-    const queries: RipQuery[] = Reflect.getOwnMetadata(RipMetadata.QUERIES, target, propertyKey) || [];
-    queries.push(new RipQuery(index, name));
-    Reflect.defineMetadata(RipMetadata.QUERIES, queries, target, propertyKey);
-  };
-};
+class Builder {
 
-export const GET = (url: string): any => {
-  return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-
-    Reflect.defineMetadata(RipMetadata.VERB, RipVerb.GET, target, propertyKey);
-
-    Reflect.defineMetadata(RipMetadata.URL, url, target, propertyKey);
-
-    const originalMethod = descriptor.value;
-
-    descriptor.value = function (...args: any[]) {
-
-      const pathes = Reflect.getOwnMetadata(RipMetadata.PATHES, target, propertyKey) || [];
-      for (const path of pathes) {
-        path.value = args[path.index];
-      }
-
-      const queries = Reflect.getOwnMetadata(RipMetadata.QUERIES, target, propertyKey) || [];
-      for (const query of queries) {
-        query.value = args[query.index];
-      }
-
-      const config = new RipConfig(target, propertyKey);
-      console.log(config);
-
-      return originalMethod.apply(this, arguments);
+  static buildBodyDecorator() {
+    return () => {
+      return (target, propertyKey: string, index: number) => {
+        Reflect.defineMetadata(RipMetadata.BODY, new RipArg(index), target, propertyKey);
+      };
     };
-    return descriptor;
-  };
-};
+  }
+
+  static buildParamDecorator(metadata: RipMetadata.PATHES | RipMetadata.QUERIES) {
+    return (name: string) => {
+      return (target, propertyKey: string, index: number) => {
+        const args: RipArg[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
+        args.push(new RipArg(index, name));
+        Reflect.defineMetadata(metadata, args, target, propertyKey);
+      };
+    };
+  }
+
+  static buildVerbDecorator(verb: RipVerb) {
+    return (url: string) => {
+      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
+
+        Reflect.defineMetadata(RipMetadata.VERB, verb, target, propertyKey);
+
+        Reflect.defineMetadata(RipMetadata.URL, url, target, propertyKey);
+
+        const originalMethod = descriptor.value;
+
+        descriptor.value = (...args: any[]) => {
+
+          const pathes = Reflect.getOwnMetadata(RipMetadata.PATHES, target, propertyKey) || [];
+          for (const path of pathes) {
+            path.value = args[path.index];
+          }
+
+          const queries = Reflect.getOwnMetadata(RipMetadata.QUERIES, target, propertyKey) || [];
+          for (const query of queries) {
+            query.value = args[query.index];
+          }
+
+          const body = Reflect.getOwnMetadata(RipMetadata.BODY, target, propertyKey);
+          if (body != null) {
+            body.value = args[body.index];
+          }
+          const config = new RipConfig(target, propertyKey);
+          console.log(config);
+
+          return originalMethod.apply(this, args);
+        };
+        return descriptor;
+      };
+    };
+  }
+}
+
+export const Query = Builder.buildParamDecorator(RipMetadata.QUERIES);
+export const Path = Builder.buildParamDecorator(RipMetadata.PATHES);
+export const Body = Builder.buildBodyDecorator();
+export const GET = Builder.buildVerbDecorator(RipVerb.GET);
+export const POST = Builder.buildVerbDecorator(RipVerb.POST);
+export const PATCH = Builder.buildVerbDecorator(RipVerb.PATCH);
+export const PUT = Builder.buildVerbDecorator(RipVerb.PUT);
+export const DELETE = Builder.buildVerbDecorator(RipVerb.DELETE);

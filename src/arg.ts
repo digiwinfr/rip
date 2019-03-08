@@ -1,4 +1,4 @@
-export abstract class RipArg {
+export class RipArg {
 
   index: number;
 
@@ -7,7 +7,7 @@ export abstract class RipArg {
   value: any;
 
 
-  constructor(index: number, name: string, value?: any) {
+  constructor(index: number, name?: string, value?: any) {
     this.index = index;
     this.name = name;
     this.value = value;

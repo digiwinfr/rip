@@ -1,4 +1,4 @@
-import { GET, Path, Query } from './decorators';
+import { Body, GET, Path, POST, Query } from './decorators';
 import { Observable } from 'rxjs';
 
 class Thing {
@@ -7,16 +7,20 @@ class Thing {
 
 class ThingClient {
 
-  @GET('http://localhost:8080/quiz/list')
+  @GET('http://localhost:8080/things')
   all(@Query('sort') sort?: string): Observable<Thing[]> {
     return null;
   }
 
-  @GET('http://localhost:8080/quiz/:id')
+  @GET('http://localhost:8080/thing/:id')
   findById(@Path('id') id: number): Observable<Thing> {
     return null;
   }
 
+  @POST('http://localhost:8080/thing')
+  send(@Body() thing: Thing): Observable<any> {
+    return null;
+  }
 }
 
 
@@ -26,5 +30,6 @@ describe('Rip', () => {
     client.all();
     client.all('name asc');
     client.findById(12);
+    client.send(new Thing());
   });
 });
