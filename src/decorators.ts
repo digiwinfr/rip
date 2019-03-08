@@ -4,7 +4,6 @@ import { HTTPVerb } from './HTTPVerb';
 import { Parameter } from './parameter';
 import { RequestConfigurator } from './requestConfigurator';
 
-
 class Builder {
 
   static buildBodyDecorator() {
@@ -19,7 +18,7 @@ class Builder {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
         const parameters: Parameter[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
-        parameters.push(new Parameter(index, name));
+        parameters[index] = new Parameter(index, name);
         Reflect.defineMetadata(metadata, parameters, target, propertyKey);
       };
     };
@@ -29,6 +28,7 @@ class Builder {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
 
+
         Reflect.defineMetadata(Metadata.VERB, verb, target, propertyKey);
 
         Reflect.defineMetadata(Metadata.URL, url, target, propertyKey);
@@ -36,6 +36,9 @@ class Builder {
         const originalMethod = descriptor.value;
 
         descriptor.value = (...args: any[]) => {
+
+
+          Reflect.deleteMetadata(Metadata.CONFIGURATION, target, propertyKey);
 
           const paths = Reflect.getOwnMetadata(Metadata.PATHS, target, propertyKey) || [];
           for (const path of paths) {
@@ -54,7 +57,8 @@ class Builder {
 
           const configurator = new RequestConfigurator(target, propertyKey);
           const configuration = configurator.configure();
-          console.log(configuration);
+
+          Reflect.defineMetadata(Metadata.CONFIGURATION, configuration, target, propertyKey);
 
           return originalMethod.apply(this, args);
         };

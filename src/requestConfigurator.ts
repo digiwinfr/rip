@@ -5,28 +5,28 @@ import { RequestConfiguration } from './requestConfiguration';
 
 export class RequestConfigurator {
 
-  private target;
+  private clazz;
 
-  private propertyKey: string;
+  private method: string;
 
   private configuration: RequestConfiguration;
 
-  public constructor(target, propertyKey: string) {
-    this.target = target;
-    this.propertyKey = propertyKey;
+  public constructor(clazz, method: string) {
+    this.clazz = clazz;
+    this.method = method;
     this.configuration = new RequestConfiguration();
   }
 
   public configure(): RequestConfiguration {
-    this.findDecoratorNames().forEach((decoratorName) => {
+    this.findRipDecoratorNames().forEach((decoratorName) => {
       this.applyValue(decoratorName);
     });
     return this.configuration;
   }
 
-  private findDecoratorNames(): string[] {
+  private findRipDecoratorNames(): string[] {
     const decorators = [];
-    Reflect.getMetadataKeys(this.target, this.propertyKey).forEach((name) => {
+    Reflect.getMetadataKeys(this.clazz, this.method).forEach((name) => {
       if (name.startsWith(METADATA_PREFIX)) {
         decorators.push(name);
       }
@@ -35,7 +35,7 @@ export class RequestConfigurator {
   }
 
   private applyValue(decoratorName: string) {
-    const value = Reflect.getMetadata(decoratorName, this.target, this.propertyKey);
+    const value = Reflect.getMetadata(decoratorName, this.clazz, this.method);
     const property = decoratorName.slice(METADATA_PREFIX.length);
     if (this.configuration.hasOwnProperty(property)) {
       this.configuration[property] = value;
