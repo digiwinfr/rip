@@ -15,7 +15,7 @@ class Builder {
     };
   }
 
-  static buildParamDecorator(metadata: RipMetadata.PATHES | RipMetadata.QUERIES) {
+  static buildParamDecorator(metadata: RipMetadata.PATHS | RipMetadata.QUERIES) {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
         const args: RipArg[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
@@ -37,8 +37,8 @@ class Builder {
 
         descriptor.value = (...args: any[]) => {
 
-          const pathes = Reflect.getOwnMetadata(RipMetadata.PATHES, target, propertyKey) || [];
-          for (const path of pathes) {
+          const paths = Reflect.getOwnMetadata(RipMetadata.PATHS, target, propertyKey) || [];
+          for (const path of paths) {
             path.value = args[path.index];
           }
 
@@ -51,6 +51,7 @@ class Builder {
           if (body != null) {
             body.value = args[body.index];
           }
+
           const config = new RipConfig(target, propertyKey);
           console.log(config);
 
@@ -63,7 +64,7 @@ class Builder {
 }
 
 export const Query = Builder.buildParamDecorator(RipMetadata.QUERIES);
-export const Path = Builder.buildParamDecorator(RipMetadata.PATHES);
+export const Path = Builder.buildParamDecorator(RipMetadata.PATHS);
 export const Body = Builder.buildBodyDecorator();
 export const GET = Builder.buildVerbDecorator(RipVerb.GET);
 export const POST = Builder.buildVerbDecorator(RipVerb.POST);

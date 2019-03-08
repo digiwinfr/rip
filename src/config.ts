@@ -10,7 +10,7 @@ export class RipConfig {
 
   public url: string = null;
 
-  public pathes: RipArg[] = [];
+  public paths: RipArg[] = [];
 
   public queries: RipArg[] = [];
 
