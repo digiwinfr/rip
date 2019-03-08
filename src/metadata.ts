@@ -1,6 +1,6 @@
 export const METADATA_PREFIX = 'rip:';
 
-export enum RipMetadata {
+export enum Metadata {
   VERB = 'rip:verb',
   URL = 'rip:url',
   PATHS = 'rip:paths',

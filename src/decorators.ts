@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import { RipConfig } from './config';
-import { RipMetadata } from './metadata';
-import { RipVerb } from './verb';
-import { RipArg } from './arg';
+import { Metadata } from './metadata';
+import { HTTPVerb } from './HTTPVerb';
+import { Parameter } from './parameter';
+import { RequestConfigurator } from './requestConfigurator';
 
 
 class Builder {
@@ -10,50 +10,51 @@ class Builder {
   static buildBodyDecorator() {
     return () => {
       return (target, propertyKey: string, index: number) => {
-        Reflect.defineMetadata(RipMetadata.BODY, new RipArg(index), target, propertyKey);
+        Reflect.defineMetadata(Metadata.BODY, new Parameter(index), target, propertyKey);
       };
     };
   }
 
-  static buildParamDecorator(metadata: RipMetadata.PATHS | RipMetadata.QUERIES) {
+  static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES) {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
-        const args: RipArg[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
-        args.push(new RipArg(index, name));
-        Reflect.defineMetadata(metadata, args, target, propertyKey);
+        const parameters: Parameter[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
+        parameters.push(new Parameter(index, name));
+        Reflect.defineMetadata(metadata, parameters, target, propertyKey);
       };
     };
   }
 
-  static buildVerbDecorator(verb: RipVerb) {
+  static buildVerbDecorator(verb: HTTPVerb) {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
 
-        Reflect.defineMetadata(RipMetadata.VERB, verb, target, propertyKey);
+        Reflect.defineMetadata(Metadata.VERB, verb, target, propertyKey);
 
-        Reflect.defineMetadata(RipMetadata.URL, url, target, propertyKey);
+        Reflect.defineMetadata(Metadata.URL, url, target, propertyKey);
 
         const originalMethod = descriptor.value;
 
         descriptor.value = (...args: any[]) => {
 
-          const paths = Reflect.getOwnMetadata(RipMetadata.PATHS, target, propertyKey) || [];
+          const paths = Reflect.getOwnMetadata(Metadata.PATHS, target, propertyKey) || [];
           for (const path of paths) {
             path.value = args[path.index];
           }
 
-          const queries = Reflect.getOwnMetadata(RipMetadata.QUERIES, target, propertyKey) || [];
+          const queries = Reflect.getOwnMetadata(Metadata.QUERIES, target, propertyKey) || [];
           for (const query of queries) {
             query.value = args[query.index];
           }
 
-          const body = Reflect.getOwnMetadata(RipMetadata.BODY, target, propertyKey);
+          const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey);
           if (body != null) {
             body.value = args[body.index];
           }
 
-          const config = new RipConfig(target, propertyKey);
-          console.log(config);
+          const configurator = new RequestConfigurator(target, propertyKey);
+          const configuration = configurator.configure();
+          console.log(configuration);
 
           return originalMethod.apply(this, args);
         };
@@ -63,11 +64,11 @@ class Builder {
   }
 }
 
-export const Query = Builder.buildParamDecorator(RipMetadata.QUERIES);
-export const Path = Builder.buildParamDecorator(RipMetadata.PATHS);
+export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
+export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
 export const Body = Builder.buildBodyDecorator();
-export const GET = Builder.buildVerbDecorator(RipVerb.GET);
-export const POST = Builder.buildVerbDecorator(RipVerb.POST);
-export const PATCH = Builder.buildVerbDecorator(RipVerb.PATCH);
-export const PUT = Builder.buildVerbDecorator(RipVerb.PUT);
-export const DELETE = Builder.buildVerbDecorator(RipVerb.DELETE);
+export const GET = Builder.buildVerbDecorator(HTTPVerb.GET);
+export const POST = Builder.buildVerbDecorator(HTTPVerb.POST);
+export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);
+export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
+export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);

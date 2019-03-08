@@ -21,11 +21,12 @@ class ThingClient {
   send(@Body() thing: Thing): Observable<any> {
     return null;
   }
+
 }
 
 
 describe('Rip', () => {
-  it('should works', () => {
+  it('Decorators should configure requests', () => {
     const client = new ThingClient();
     client.all();
     client.all('name asc');

@@ -1,4 +1,4 @@
-export enum RipVerb {
+export enum HTTPVerb {
   GET = 'GET',
   POST = 'POST',
   PUT = 'PUT',
