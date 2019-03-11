@@ -6,6 +6,10 @@ import { HTTPVerb } from './HTTPVerb';
 
 class Thing {
   name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
 }
 
 class ThingClient {
@@ -30,7 +34,7 @@ class ThingClient {
 
 describe('Decorators apply metadata', () => {
 
-  it('Decorators should configure GET request with a single query', () => {
+  it('should configure GET request with a query', () => {
     const client = new ThingClient();
     client.all('name asc');
 
@@ -41,7 +45,7 @@ describe('Decorators apply metadata', () => {
     expect(configuration.queries[0].value).toBe('name asc');
   });
 
-  it('Decorators should configure GET request with an undefined single query', () => {
+  it('should configure GET request with an undefined query', () => {
     const client = new ThingClient();
     client.all();
 
@@ -55,7 +59,7 @@ describe('Decorators apply metadata', () => {
     expect(configuration.queries[0].value).toBe(undefined);
   });
 
-  it('Decorators should configure two consecutive GET requests with two paths', () => {
+  it('should configure two consecutive GET requests with two paths', () => {
     const client = new ThingClient();
     client.findById(1, 'edit');
 
@@ -86,6 +90,20 @@ describe('Decorators apply metadata', () => {
     expect(configuration.paths[1].index).toBe(1);
     expect(configuration.paths[1].name).toBe('action');
     expect(configuration.paths[1].value).toBe(undefined);
+  });
+
+  it('should configure POST request with a body', () => {
+    const client = new ThingClient();
+    client.send(new Thing('stuff'));
+
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'send');
+
+    expect(configuration.verb).toBe(HTTPVerb.POST);
+    expect(configuration.url).toBe('http://localhost:8080/thing');
+
+    expect(configuration.body.index).toBe(0);
+    expect(configuration.body.name).toBe(undefined);
+    expect(configuration.body.value).toEqual(new Thing('stuff'));
   });
 
 });
