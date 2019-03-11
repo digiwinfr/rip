@@ -2,6 +2,9 @@
 
 An expressive HTTP client for TypeScript
 
+[![Build Status](https://travis-ci.com/digiwinfr/rip.svg?branch=develop)](https://travis-ci.com/digiwinfr/rip)
+[![Coverage Status](https://coveralls.io/repos/github/digiwinfr/rip/badge.svg?branch=develop&service=github)](https://coveralls.io/github/digiwinfr/rip?branch=develop)
+
 ## Build
 
 ```bash

@@ -3,6 +3,9 @@
 # compiled output
 /dist
 
+# test coverage output
+/coverage
+
 # dependencies
 /node_modules
 
