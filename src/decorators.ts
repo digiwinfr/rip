@@ -17,6 +17,10 @@ class Builder {
   public static buildBodyDecorator() {
     return () => {
       return (target, propertyKey: string, index: number) => {
+        const body: Parameter = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey);
+        if (body !== undefined) {
+          throw Error('The method \'' + target.constructor.name + '.' + propertyKey + '\' has two @Body decorators');
+        }
         Reflect.defineMetadata(Metadata.BODY, new Parameter(index), target, propertyKey);
       };
     };

@@ -115,4 +115,16 @@ describe('Decorators apply metadata', () => {
     expect(configuration.body.value).toEqual(new Thing('stuff'));
   });
 
+  it('should failed because having two @Body decorators', () => {
+    const configure = () => {
+      class FailingClientWithTwoBody {
+        @POST('/thing')
+        send(@Body() thing: Thing, @Body() anotherThing: Thing): Observable<any> {
+          return null;
+        }
+      }
+    };
+    expect(configure).toThrow('The method \'FailingClientWithTwoBody.send\' has two @Body decorators');
+  });
+
 });
