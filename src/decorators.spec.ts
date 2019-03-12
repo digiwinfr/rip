@@ -119,12 +119,22 @@ describe('Decorators apply metadata', () => {
     const configure = () => {
       class FailingClientWithTwoBody {
         @POST('/thing')
-        send(@Body() thing: Thing, @Body() anotherThing: Thing): Observable<any> {
-          return null;
+        send(@Body() thing: Thing, @Body() anotherThing: Thing) {
         }
       }
     };
     expect(configure).toThrow('The method \'FailingClientWithTwoBody.send\' has two @Body decorators');
+  });
+
+  it('should failed because @Body decorator is not compatible with @GET decorator', () => {
+    const configure = () => {
+      class FailingClientWithTwoBody {
+        @GET('/thing')
+        send(@Body() thing: Thing) {
+        }
+      }
+    };
+    expect(configure).toThrow('@Body decorator is not compatible with @GET decorator');
   });
 
 });

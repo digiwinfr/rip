@@ -40,19 +40,19 @@ class Builder {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
 
+        this.checkBodyCompatibility(target, propertyKey, verb);
+
         Reflect.defineMetadata(Metadata.VERB, verb, target, propertyKey);
 
         Reflect.defineMetadata(Metadata.URL, url, target, propertyKey);
 
         const originalMethod = descriptor.value;
-
         descriptor.value = (...args: any[]) => {
 
 
           Reflect.deleteMetadata(Metadata.CONFIGURATION, target, propertyKey);
 
           this.copyMetadataFromClassToMethod(target, propertyKey);
-
           this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
           this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
           this.setParametersValues(Metadata.BODY, args, target, propertyKey);
@@ -67,6 +67,12 @@ class Builder {
         return descriptor;
       };
     };
+  }
+
+  private static checkBodyCompatibility(target, propertyKey: string, verb: HTTPVerb) {
+    if (Reflect.hasMetadata(Metadata.BODY, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
+      throw Error('@Body decorator is not compatible with @' + verb + ' decorator');
+    }
   }
 
   private static setParametersValues(
