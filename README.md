@@ -4,6 +4,7 @@ An expressive HTTP client for TypeScript
 
 [![Build Status](https://travis-ci.com/digiwinfr/rip.svg?branch=develop)](https://travis-ci.com/digiwinfr/rip)
 [![Coverage Status](https://coveralls.io/repos/github/digiwinfr/rip/badge.svg?branch=develop&service=github)](https://coveralls.io/github/digiwinfr/rip?branch=develop)
+[![Maintainability](https://api.codeclimate.com/v1/badges/2118b0ff758b5e29cefb/maintainability)](https://codeclimate.com/github/digiwinfr/rip/maintainability)
 
 ## Build
 
@@ -17,6 +18,9 @@ Tests are written with Jest.
 
 ```bash
 npm test
+
+# Or with code coverage
+npm run coverage
 ```
 
 In case of running test suite with Webstorm 2018.3.5,  
