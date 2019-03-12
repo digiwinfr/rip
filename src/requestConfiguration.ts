@@ -3,6 +3,8 @@ import { Parameter } from './parameter';
 
 export class RequestConfiguration {
 
+  public baseurl: string = null;
+
   public verb: HTTPVerb = null;
 
   public url: string = null;

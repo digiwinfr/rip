@@ -1,4 +1,4 @@
-import { Body, GET, Path, POST, Query } from './decorators';
+import { BaseUrl, Body, GET, Path, POST, Query } from './decorators';
 import { Observable } from 'rxjs';
 import { RequestConfiguration } from './requestConfiguration';
 import { Metadata } from './metadata';
@@ -12,19 +12,20 @@ class Thing {
   }
 }
 
+@BaseUrl('http://localhost:8080')
 class ThingClient {
 
-  @GET('http://localhost:8080/things')
+  @GET('/things')
   all(@Query('sort') sort?: string): Observable<Thing[]> {
     return null;
   }
 
-  @GET('http://localhost:8080/thing/:id/:action')
+  @GET('/thing/:id/:action')
   findById(@Path('id') id: number, @Path('action') action?: string): Observable<Thing> {
     return null;
   }
 
-  @POST('http://localhost:8080/thing')
+  @POST('/thing')
   send(@Body() thing: Thing): Observable<any> {
     return null;
   }
@@ -40,6 +41,10 @@ describe('Decorators apply metadata', () => {
 
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'all');
 
+    expect(configuration.verb).toBe(HTTPVerb.GET);
+    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.url).toBe('/things');
+
     expect(configuration.queries[0].index).toBe(0);
     expect(configuration.queries[0].name).toBe('sort');
     expect(configuration.queries[0].value).toBe('name asc');
@@ -52,7 +57,8 @@ describe('Decorators apply metadata', () => {
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'all');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.url).toBe('http://localhost:8080/things');
+    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.url).toBe('/things');
 
     expect(configuration.queries[0].index).toBe(0);
     expect(configuration.queries[0].name).toBe('sort');
@@ -66,7 +72,8 @@ describe('Decorators apply metadata', () => {
     let configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'findById');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.url).toBe('http://localhost:8080/thing/:id/:action');
+    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.url).toBe('/thing/:id/:action');
 
     expect(configuration.paths[0].index).toBe(0);
     expect(configuration.paths[0].name).toBe('id');
@@ -81,7 +88,8 @@ describe('Decorators apply metadata', () => {
     configuration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'findById');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.url).toBe('http://localhost:8080/thing/:id/:action');
+    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.url).toBe('/thing/:id/:action');
 
     expect(configuration.paths[0].index).toBe(0);
     expect(configuration.paths[0].name).toBe('id');
@@ -99,7 +107,8 @@ describe('Decorators apply metadata', () => {
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'send');
 
     expect(configuration.verb).toBe(HTTPVerb.POST);
-    expect(configuration.url).toBe('http://localhost:8080/thing');
+    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.url).toBe('/thing');
 
     expect(configuration.body.index).toBe(0);
     expect(configuration.body.name).toBe(undefined);

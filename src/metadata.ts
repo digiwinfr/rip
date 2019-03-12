@@ -1,6 +1,8 @@
 export const METADATA_PREFIX = 'rip:';
 
 export enum Metadata {
+  BASE_URL = 'rip:baseurl',
+
   VERB = 'rip:verb',
   URL = 'rip:url',
 

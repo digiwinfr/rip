@@ -26,7 +26,8 @@ export class RequestConfigurator {
 
   private findRipDecoratorNames(): string[] {
     const decorators = [];
-    Reflect.getMetadataKeys(this.clazz, this.method).forEach((name) => {
+    const metadataKeys = Reflect.getMetadataKeys(this.clazz, this.method);
+    metadataKeys.forEach((name) => {
       if (name.startsWith(METADATA_PREFIX)) {
         decorators.push(name);
       }
