@@ -26,7 +26,7 @@ class Builder {
     };
   }
 
-  public static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES) {
+  public static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS) {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
         const parameters: Parameter[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
@@ -58,6 +58,7 @@ class Builder {
       Reflect.deleteMetadata(Metadata.CONFIGURATION, target, propertyKey);
 
       this.copyMetadataFromClassToMethod(target, propertyKey);
+      this.setParametersValues(Metadata.HEADERS, args, target, propertyKey);
       this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
       this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
       this.setParametersValues(Metadata.BODY, args, target, propertyKey);
@@ -78,7 +79,7 @@ class Builder {
   }
 
   private static setParametersValues(
-    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.BODY,
+    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.BODY | Metadata.HEADERS,
     args: any[], target, propertyKey: string) {
     const metadataValue = Reflect.getOwnMetadata(metadata, target, propertyKey);
     if (metadataValue instanceof Array) {
@@ -102,9 +103,12 @@ class Builder {
 }
 
 export const BaseUrl = Builder.buildBaseUrlDecorator();
+
 export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
 export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
+export const Header = Builder.buildParameterDecorator(Metadata.HEADERS);
 export const Body = Builder.buildBodyDecorator();
+
 export const GET = Builder.buildVerbDecorator(HTTPVerb.GET);
 export const POST = Builder.buildVerbDecorator(HTTPVerb.POST);
 export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);

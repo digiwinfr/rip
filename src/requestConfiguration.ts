@@ -14,4 +14,6 @@ export class RequestConfiguration {
   public queries: Parameter[] = [];
 
   public body: Parameter = null;
+
+  public headers: Parameter[] = [];
 }

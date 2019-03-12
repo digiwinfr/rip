@@ -1,5 +1,4 @@
-import { BaseUrl, Body, GET, Path, POST, Query } from './decorators';
-import { Observable } from 'rxjs';
+import { BaseUrl, Body, GET, Header, Path, POST, Query } from './decorators';
 import { RequestConfiguration } from './requestConfiguration';
 import { Metadata } from './metadata';
 import { HTTPVerb } from './HTTPVerb';
@@ -109,8 +108,7 @@ describe('Decorators apply metadata', () => {
     @BaseUrl('http://localhost:8080')
     class ThingClient {
       @POST('/thing')
-      send(@Body() thing: Thing): Observable<any> {
-        return null;
+      send(@Body() thing: Thing) {
       }
     }
 
@@ -150,4 +148,21 @@ describe('Decorators apply metadata', () => {
     expect(client).toThrow('@Body decorator is not compatible with @GET decorator');
   });
 
+
+  it('should configure request with a header', () => {
+
+    class ThingClient {
+      @GET('/token')
+      send(@Header('Authorization') code: string) {
+      }
+    }
+
+    const client = new ThingClient();
+    client.send('Bearer abcedf');
+
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'send');
+
+    expect(configuration.headers[0].name).toBe('Authorization');
+    expect(configuration.headers[0].value).toBe('Bearer abcedf');
+  });
 });

@@ -5,6 +5,7 @@ export enum Metadata {
 
   VERB = 'rip:verb',
   URL = 'rip:url',
+  HEADERS = 'rip:headers',
 
   PATHS = 'rip:paths',
   QUERIES = 'rip:queries',
