@@ -46,26 +46,28 @@ class Builder {
 
         Reflect.defineMetadata(Metadata.URL, url, target, propertyKey);
 
-        const originalMethod = descriptor.value;
-        descriptor.value = (...args: any[]) => {
+        descriptor.value = this.verbDecoratorRuntime(descriptor.value, target, propertyKey);
 
-
-          Reflect.deleteMetadata(Metadata.CONFIGURATION, target, propertyKey);
-
-          this.copyMetadataFromClassToMethod(target, propertyKey);
-          this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
-          this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
-          this.setParametersValues(Metadata.BODY, args, target, propertyKey);
-
-          const configurator = new RequestConfigurator(target, propertyKey);
-          const configuration = configurator.configure();
-
-          Reflect.defineMetadata(Metadata.CONFIGURATION, configuration, target, propertyKey);
-
-          return originalMethod.apply(this, args);
-        };
         return descriptor;
       };
+    };
+  }
+
+  private static verbDecoratorRuntime(originalMethod, target, propertyKey) {
+    return (...args: any[]) => {
+      Reflect.deleteMetadata(Metadata.CONFIGURATION, target, propertyKey);
+
+      this.copyMetadataFromClassToMethod(target, propertyKey);
+      this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
+      this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
+      this.setParametersValues(Metadata.BODY, args, target, propertyKey);
+
+      const configurator = new RequestConfigurator(target, propertyKey);
+      const configuration = configurator.configure();
+
+      Reflect.defineMetadata(Metadata.CONFIGURATION, configuration, target, propertyKey);
+
+      return originalMethod.apply(this, args);
     };
   }
 
