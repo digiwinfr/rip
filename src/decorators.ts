@@ -53,20 +53,9 @@ class Builder {
 
           this.copyMetadataFromClassToMethod(target, propertyKey);
 
-          const paths = Reflect.getOwnMetadata(Metadata.PATHS, target, propertyKey) || [];
-          for (const path of paths) {
-            path.value = args[path.index];
-          }
-
-          const queries = Reflect.getOwnMetadata(Metadata.QUERIES, target, propertyKey) || [];
-          for (const query of queries) {
-            query.value = args[query.index];
-          }
-
-          const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey);
-          if (body != null) {
-            body.value = args[body.index];
-          }
+          this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
+          this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
+          this.setParametersValues(Metadata.BODY, args, target, propertyKey);
 
           const configurator = new RequestConfigurator(target, propertyKey);
           const configuration = configurator.configure();
@@ -78,6 +67,19 @@ class Builder {
         return descriptor;
       };
     };
+  }
+
+  private static setParametersValues(
+    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.BODY,
+    args: any[], target, propertyKey: string) {
+    const metadataValue = Reflect.getOwnMetadata(metadata, target, propertyKey);
+    if (metadataValue instanceof Array) {
+      for (const parameter of (metadataValue as Parameter[])) {
+        parameter.value = args[parameter.index];
+      }
+    } else if (metadataValue !== undefined) {
+      (metadataValue as Parameter).value = args[metadataValue.index];
+    }
   }
 
   private static copyMetadataFromClassToMethod(target, propertyKey: string) {
