@@ -12,30 +12,18 @@ class Thing {
   }
 }
 
-@BaseUrl('http://localhost:8080')
-class ThingClient {
-
-  @GET('/things')
-  all(@Query('sort') sort?: string): Observable<Thing[]> {
-    return null;
-  }
-
-  @GET('/thing/:id/:action')
-  findById(@Path('id') id: number, @Path('action') action?: string): Observable<Thing> {
-    return null;
-  }
-
-  @POST('/thing')
-  send(@Body() thing: Thing): Observable<any> {
-    return null;
-  }
-
-}
-
 
 describe('Decorators apply metadata', () => {
 
   it('should configure GET request with a query', () => {
+
+    @BaseUrl('http://localhost:8080')
+    class ThingClient {
+      @GET('/things')
+      all(@Query('sort') sort?: string) {
+      }
+    }
+
     const client = new ThingClient();
     client.all('name asc');
 
@@ -51,6 +39,14 @@ describe('Decorators apply metadata', () => {
   });
 
   it('should configure GET request with an undefined query', () => {
+
+    @BaseUrl('http://localhost:8080')
+    class ThingClient {
+      @GET('/things')
+      all(@Query('sort') sort?: string) {
+      }
+    }
+
     const client = new ThingClient();
     client.all();
 
@@ -66,6 +62,14 @@ describe('Decorators apply metadata', () => {
   });
 
   it('should configure two consecutive GET requests with two paths', () => {
+
+    @BaseUrl('http://localhost:8080')
+    class ThingClient {
+      @GET('/thing/:id/:action')
+      findById(@Path('id') id: number, @Path('action') action?: string) {
+      }
+    }
+
     const client = new ThingClient();
     client.findById(1, 'edit');
 
@@ -101,6 +105,15 @@ describe('Decorators apply metadata', () => {
   });
 
   it('should configure POST request with a body', () => {
+
+    @BaseUrl('http://localhost:8080')
+    class ThingClient {
+      @POST('/thing')
+      send(@Body() thing: Thing): Observable<any> {
+        return null;
+      }
+    }
+
     const client = new ThingClient();
     client.send(new Thing('stuff'));
 
@@ -116,25 +129,25 @@ describe('Decorators apply metadata', () => {
   });
 
   it('should failed because having two @Body decorators', () => {
-    const configure = () => {
-      class FailingClientWithTwoBody {
+    const client = () => {
+      class FailingClient {
         @POST('/thing')
         send(@Body() thing: Thing, @Body() anotherThing: Thing) {
         }
       }
     };
-    expect(configure).toThrow('The method \'FailingClientWithTwoBody.send\' has two @Body decorators');
+    expect(client).toThrow('The method \'FailingClient.send\' has two @Body decorators');
   });
 
   it('should failed because @Body decorator is not compatible with @GET decorator', () => {
-    const configure = () => {
-      class FailingClientWithTwoBody {
+    const client = () => {
+      class FailingClient {
         @GET('/thing')
         send(@Body() thing: Thing) {
         }
       }
     };
-    expect(configure).toThrow('@Body decorator is not compatible with @GET decorator');
+    expect(client).toThrow('@Body decorator is not compatible with @GET decorator');
   });
 
 });
