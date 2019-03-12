@@ -30,7 +30,7 @@ describe('Decorators apply metadata', () => {
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'all');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/things');
 
     expect(configuration.queries[0].index).toBe(0);
@@ -53,7 +53,7 @@ describe('Decorators apply metadata', () => {
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'all');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/things');
 
     expect(configuration.queries[0].index).toBe(0);
@@ -76,7 +76,7 @@ describe('Decorators apply metadata', () => {
     let configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'findById');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/thing/:id/:action');
 
     expect(configuration.paths[0].index).toBe(0);
@@ -92,7 +92,7 @@ describe('Decorators apply metadata', () => {
     configuration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'findById');
 
     expect(configuration.verb).toBe(HTTPVerb.GET);
-    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/thing/:id/:action');
 
     expect(configuration.paths[0].index).toBe(0);
@@ -120,7 +120,7 @@ describe('Decorators apply metadata', () => {
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'send');
 
     expect(configuration.verb).toBe(HTTPVerb.POST);
-    expect(configuration.baseurl).toBe('http://localhost:8080');
+    expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/thing');
 
     expect(configuration.body.index).toBe(0);
