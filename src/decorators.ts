@@ -165,18 +165,10 @@ class Builder {
     };
   }
 
-  public static buildFormUrlEncodedDecorator() {
+  public static buildBooleanDecorator(metadata: Metadata.FORM_URL_ENCODED | Metadata.MULTIPART) {
     return () => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-        Reflect.defineMetadata(Metadata.FORM_URL_ENCODED, true, target, propertyKey);
-      };
-    };
-  }
-
-  public static buildMultipartDecorator() {
-    return () => {
-      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-        Reflect.defineMetadata(Metadata.MULTIPART, true, target, propertyKey);
+        Reflect.defineMetadata(metadata, true, target, propertyKey);
       };
     };
   }
@@ -192,8 +184,8 @@ export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);
 export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
 export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);
 export const Headers = Builder.buildHeadersDecorator();
-export const FormUrlEncoded = Builder.buildFormUrlEncodedDecorator();
-export const Multipart = Builder.buildMultipartDecorator();
+export const FormUrlEncoded = Builder.buildBooleanDecorator(Metadata.FORM_URL_ENCODED);
+export const Multipart = Builder.buildBooleanDecorator(Metadata.MULTIPART);
 
 // Parameter decorators
 export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
