@@ -1,8 +1,9 @@
 import 'reflect-metadata';
 import { Metadata, METADATA_PREFIX } from './metadata';
 import { HTTPVerb } from './HTTPVerb';
-import { Parameter } from './parameter';
+import { ParameterValue } from './values/parameterValue';
 import { RequestConfigurator } from './requestConfigurator';
+import { BodyValue } from './values/bodyValue';
 
 class Builder {
 
@@ -17,11 +18,11 @@ class Builder {
   public static buildBodyDecorator() {
     return () => {
       return (target, propertyKey: string, index: number) => {
-        const body: Parameter = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey);
-        if (body !== undefined) {
+        const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as BodyValue || null;
+        if (body !== null) {
           throw Error('The method \'' + target.constructor.name + '.' + propertyKey + '\' has two @Body decorators');
         }
-        Reflect.defineMetadata(Metadata.BODY, new Parameter(index), target, propertyKey);
+        Reflect.defineMetadata(Metadata.BODY, new BodyValue(index), target, propertyKey);
       };
     };
   }
@@ -29,8 +30,8 @@ class Builder {
   public static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS) {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
-        const parameters: Parameter[] = Reflect.getOwnMetadata(metadata, target, propertyKey) || [];
-        parameters[index] = new Parameter(index, name);
+        const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
+        parameters[index] = new ParameterValue(index, name);
         Reflect.defineMetadata(metadata, parameters, target, propertyKey);
       };
     };
@@ -81,7 +82,7 @@ class Builder {
   private static setParametersValues(
     metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS,
     args: any[], target, propertyKey: string) {
-    const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as Parameter[] || [];
+    const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
     for (const parameter of parameters) {
       if (parameter.index !== null) {
         parameter.value = args[parameter.index];
@@ -90,7 +91,7 @@ class Builder {
   }
 
   private static setBodyValue(args: any[], target, propertyKey: string) {
-    const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as Parameter || null;
+    const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as BodyValue || null;
     if (body !== null) {
       body.value = args[body.index];
     }
@@ -109,10 +110,10 @@ class Builder {
   public static buildHeadersDecorator() {
     return (object: {}) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-        const headers: Parameter[] = Reflect.getOwnMetadata(Metadata.HEADERS, target, propertyKey) || [];
+        const headers = Reflect.getOwnMetadata(Metadata.HEADERS, target, propertyKey) || [];
         for (const key in object) {
           if (object.hasOwnProperty(key)) {
-            headers.push(new Parameter(null, key, object[key]));
+            headers.push(new ParameterValue(null, key, object[key]));
           }
         }
         Reflect.defineMetadata(Metadata.HEADERS, headers, target, propertyKey);

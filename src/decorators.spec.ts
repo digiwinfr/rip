@@ -33,7 +33,7 @@ describe('Decorators apply metadata', () => {
     expect(configuration.url).toBe('/things');
 
     expect(configuration.queries[0].index).toBe(0);
-    expect(configuration.queries[0].name).toBe('sort');
+    expect(configuration.queries[0].key).toBe('sort');
     expect(configuration.queries[0].value).toBe('name asc');
   });
 
@@ -56,7 +56,7 @@ describe('Decorators apply metadata', () => {
     expect(configuration.url).toBe('/things');
 
     expect(configuration.queries[0].index).toBe(0);
-    expect(configuration.queries[0].name).toBe('sort');
+    expect(configuration.queries[0].key).toBe('sort');
     expect(configuration.queries[0].value).toBe(undefined);
   });
 
@@ -79,11 +79,11 @@ describe('Decorators apply metadata', () => {
     expect(configuration.url).toBe('/thing/:id/:action');
 
     expect(configuration.paths[0].index).toBe(0);
-    expect(configuration.paths[0].name).toBe('id');
+    expect(configuration.paths[0].key).toBe('id');
     expect(configuration.paths[0].value).toBe(1);
 
     expect(configuration.paths[1].index).toBe(1);
-    expect(configuration.paths[1].name).toBe('action');
+    expect(configuration.paths[1].key).toBe('action');
     expect(configuration.paths[1].value).toBe('edit');
 
     client.findById(2);
@@ -95,11 +95,11 @@ describe('Decorators apply metadata', () => {
     expect(configuration.url).toBe('/thing/:id/:action');
 
     expect(configuration.paths[0].index).toBe(0);
-    expect(configuration.paths[0].name).toBe('id');
+    expect(configuration.paths[0].key).toBe('id');
     expect(configuration.paths[0].value).toBe(2);
 
     expect(configuration.paths[1].index).toBe(1);
-    expect(configuration.paths[1].name).toBe('action');
+    expect(configuration.paths[1].key).toBe('action');
     expect(configuration.paths[1].value).toBe(undefined);
   });
 
@@ -122,7 +122,6 @@ describe('Decorators apply metadata', () => {
     expect(configuration.url).toBe('/thing');
 
     expect(configuration.body.index).toBe(0);
-    expect(configuration.body.name).toBe(undefined);
     expect(configuration.body.value).toEqual(new Thing('stuff'));
   });
 
@@ -162,7 +161,7 @@ describe('Decorators apply metadata', () => {
 
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getToken');
 
-    expect(configuration.headers[0].name).toBe('Authorization');
+    expect(configuration.headers[0].key).toBe('Authorization');
     expect(configuration.headers[0].value).toBe('Bearer abcedf');
   });
 
@@ -182,10 +181,10 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getSomething();
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
-    expect(configuration.headers[0].name).toBe('header1');
+    expect(configuration.headers[0].key).toBe('header1');
     expect(configuration.headers[0].value).toBe('stuff 1');
 
-    expect(configuration.headers[1].name).toBe('header2');
+    expect(configuration.headers[1].key).toBe('header2');
     expect(configuration.headers[1].value).toBe('stuff 2');
 
   });
@@ -201,13 +200,13 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getSomething('stuff 1', 'stuff 2', 'stuff 3');
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
-    expect(configuration.headers[0].name).toBe('header1');
+    expect(configuration.headers[0].key).toBe('header1');
     expect(configuration.headers[0].value).toBe('stuff 1');
 
-    expect(configuration.headers[1].name).toBe('header2');
+    expect(configuration.headers[1].key).toBe('header2');
     expect(configuration.headers[1].value).toBe('stuff 2');
 
-    expect(configuration.headers[2].name).toBe('header1');
+    expect(configuration.headers[2].key).toBe('header1');
     expect(configuration.headers[2].value).toBe('stuff 3');
   });
 
@@ -226,16 +225,16 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getSomething('stuff 3', 'stuff 4', 'stuff 5');
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
-    expect(configuration.headers[0].name).toBe('header1');
+    expect(configuration.headers[0].key).toBe('header1');
     expect(configuration.headers[0].value).toBe('stuff 3');
 
-    expect(configuration.headers[1].name).toBe('header2');
+    expect(configuration.headers[1].key).toBe('header2');
     expect(configuration.headers[1].value).toBe('stuff 4');
 
-    expect(configuration.headers[2].name).toBe('header1');
+    expect(configuration.headers[2].key).toBe('header1');
     expect(configuration.headers[2].value).toBe('stuff 5');
 
-    expect(configuration.headers[3].name).toBe('header4');
+    expect(configuration.headers[3].key).toBe('header4');
     expect(configuration.headers[3].value).toBe('stuff 1');
 
   });

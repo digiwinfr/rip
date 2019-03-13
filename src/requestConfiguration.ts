@@ -1,5 +1,6 @@
 import { HTTPVerb } from './HTTPVerb';
-import { Parameter } from './parameter';
+import { ParameterValue } from './values/parameterValue';
+import { BodyValue } from './values/bodyValue';
 
 export class RequestConfiguration {
 
@@ -9,11 +10,11 @@ export class RequestConfiguration {
 
   public url: string = null;
 
-  public paths: Parameter[] = [];
+  public paths: ParameterValue[] = [];
 
-  public queries: Parameter[] = [];
+  public queries: ParameterValue[] = [];
 
-  public body: Parameter = null;
+  public body: BodyValue = null;
 
-  public headers: Parameter[] = [];
+  public headers: ParameterValue[] = [];
 }
