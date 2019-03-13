@@ -78,16 +78,22 @@ class Builder {
     }
   }
 
+  // TODO: it smells....to refactor
   private static setParametersValues(
     metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.BODY | Metadata.HEADERS,
     args: any[], target, propertyKey: string) {
     const metadataValue = Reflect.getOwnMetadata(metadata, target, propertyKey);
     if (metadataValue instanceof Array) {
       for (const parameter of (metadataValue as Parameter[])) {
-        parameter.value = args[parameter.index];
+        if (parameter.index !== null) {
+          parameter.value = args[parameter.index];
+        }
       }
     } else if (metadataValue !== undefined) {
-      (metadataValue as Parameter).value = args[metadataValue.index];
+      const parameter = (metadataValue as Parameter);
+      if (parameter.index !== null) {
+        parameter.value = args[parameter.index];
+      }
     }
   }
 
@@ -100,17 +106,35 @@ class Builder {
       }
     });
   }
+
+  public static buildHeadersDecorator() {
+    return (object: {}) => {
+      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
+        const headers: Parameter[] = Reflect.getOwnMetadata(Metadata.HEADERS, target, propertyKey) || [];
+        for (const key in object) {
+          if (object.hasOwnProperty(key)) {
+            headers.push(new Parameter(null, key, object[key]));
+          }
+        }
+        Reflect.defineMetadata(Metadata.HEADERS, headers, target, propertyKey);
+      };
+    };
+  }
 }
 
+// Class decorators
 export const BaseUrl = Builder.buildBaseUrlDecorator();
 
-export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
-export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
-export const Header = Builder.buildParameterDecorator(Metadata.HEADERS);
-export const Body = Builder.buildBodyDecorator();
-
+// Method decorators
 export const GET = Builder.buildVerbDecorator(HTTPVerb.GET);
 export const POST = Builder.buildVerbDecorator(HTTPVerb.POST);
 export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);
 export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
 export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);
+export const Headers = Builder.buildHeadersDecorator();
+
+// Parameter decorators
+export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
+export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
+export const Header = Builder.buildParameterDecorator(Metadata.HEADERS);
+export const Body = Builder.buildBodyDecorator();

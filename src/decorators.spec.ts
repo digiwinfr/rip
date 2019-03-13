@@ -1,4 +1,4 @@
-import { BaseUrl, Body, GET, Header, Path, POST, Query } from './decorators';
+import { BaseUrl, Body, GET, Header, Headers, Path, POST, Query } from './decorators';
 import { RequestConfiguration } from './requestConfiguration';
 import { Metadata } from './metadata';
 import { HTTPVerb } from './HTTPVerb';
@@ -149,20 +149,96 @@ describe('Decorators apply metadata', () => {
   });
 
 
-  it('should configure request with a header', () => {
+  it('should configure request with a parameter header', () => {
 
     class ThingClient {
       @GET('/token')
-      send(@Header('Authorization') code: string) {
+      getToken(@Header('Authorization') code: string) {
       }
     }
 
     const client = new ThingClient();
-    client.send('Bearer abcedf');
+    client.getToken('Bearer abcedf');
 
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'send');
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getToken');
 
     expect(configuration.headers[0].name).toBe('Authorization');
     expect(configuration.headers[0].value).toBe('Bearer abcedf');
   });
+
+
+  it('should configure request with headers', () => {
+
+    class ThingClient {
+      @GET('/something')
+      @Headers({
+        header1: 'stuff 1',
+        header2: 'stuff 2'
+      })
+      getSomething() {
+      }
+    }
+
+    const client = new ThingClient();
+    client.getSomething();
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
+    expect(configuration.headers[0].name).toBe('header1');
+    expect(configuration.headers[0].value).toBe('stuff 1');
+
+    expect(configuration.headers[1].name).toBe('header2');
+    expect(configuration.headers[1].value).toBe('stuff 2');
+
+  });
+
+  it('should configure request with some header parameters', () => {
+
+    class ThingClient {
+      @GET('/something')
+      getSomething(@Header('header1') p1: string, @Header('header2') p2: string, @Header('header1') p3: string) {
+      }
+    }
+
+    const client = new ThingClient();
+    client.getSomething('stuff 1', 'stuff 2', 'stuff 3');
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
+    expect(configuration.headers[0].name).toBe('header1');
+    expect(configuration.headers[0].value).toBe('stuff 1');
+
+    expect(configuration.headers[1].name).toBe('header2');
+    expect(configuration.headers[1].value).toBe('stuff 2');
+
+    expect(configuration.headers[2].name).toBe('header1');
+    expect(configuration.headers[2].value).toBe('stuff 3');
+  });
+
+  it('should configure request with multiple headers', () => {
+
+    class ThingClient {
+      @GET('/something')
+      @Headers({
+        header4: 'stuff 1',
+        header1: 'stuff 2'
+      })
+      getSomething(@Header('header1') p1: string, @Header('header2') p2: string, @Header('header1') p3: string) {
+      }
+    }
+
+    const client = new ThingClient();
+    client.getSomething('stuff 3', 'stuff 4', 'stuff 5');
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
+    expect(configuration.headers[0].name).toBe('header1');
+    expect(configuration.headers[0].value).toBe('stuff 3');
+
+    expect(configuration.headers[1].name).toBe('header2');
+    expect(configuration.headers[1].value).toBe('stuff 4');
+
+    expect(configuration.headers[2].name).toBe('header1');
+    expect(configuration.headers[2].value).toBe('stuff 5');
+
+    expect(configuration.headers[3].name).toBe('header4');
+    expect(configuration.headers[3].value).toBe('stuff 1');
+
+  });
+
+
 });
