@@ -4,6 +4,8 @@ import { HTTPVerb } from './HTTPVerb';
 import { ParameterValue } from './values/parameterValue';
 import { RequestConfigurator } from './requestConfigurator';
 import { BodyValue } from './values/bodyValue';
+import { PartValue } from './values/partValue';
+import { Serializable } from './serializable';
 
 class Builder {
 
@@ -37,6 +39,16 @@ class Builder {
     };
   }
 
+  public static buildPartDecorator() {
+    return (name: string) => {
+      return (target, propertyKey: string, index: number) => {
+        const parts = Reflect.getOwnMetadata(Metadata.PARTS, target, propertyKey) as PartValue[] || [];
+        parts[index] = new PartValue(index, name);
+        Reflect.defineMetadata(Metadata.PARTS, parts, target, propertyKey);
+      };
+    };
+  }
+
   public static buildVerbDecorator(verb: HTTPVerb) {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
@@ -63,6 +75,7 @@ class Builder {
       this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
       this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
       this.setParametersValues(Metadata.FIELDS, args, target, propertyKey);
+      this.setPartsValues(args, target, propertyKey);
       this.setBodyValue(args, target, propertyKey);
 
       const configurator = new RequestConfigurator(target, propertyKey);
@@ -83,8 +96,21 @@ class Builder {
       throw Error('@FormUrlEncoded decorator is not compatible with @' + verb + ' decorator');
     }
 
+    if (Reflect.hasMetadata(Metadata.MULTIPART, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
+      throw Error('@Multipart decorator is not compatible with @' + verb + ' decorator');
+    }
+
     if (Reflect.hasMetadata(Metadata.FIELDS, target, propertyKey) && !Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey)) {
       throw Error('@Field decorators must be used in combination with @FormUrlEncoded decorator');
+    }
+
+    if (Reflect.hasMetadata(Metadata.PARTS, target, propertyKey) && !Reflect.hasMetadata(Metadata.MULTIPART, target, propertyKey)) {
+      throw Error('@Part decorators must be used in combination with @Multipart decorator');
+    }
+
+    if (Reflect.hasMetadata(Metadata.MULTIPART, target, propertyKey) &&
+      Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey)) {
+      throw Error('@Multipart and @FormUrlEncoded decorators cannot be used is combination');
     }
   }
 
@@ -94,7 +120,16 @@ class Builder {
     const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
     for (const parameter of parameters) {
       if (parameter.index !== null) {
-        parameter.value = args[parameter.index];
+        parameter.value = args[parameter.index] as string;
+      }
+    }
+  }
+
+  private static setPartsValues(args: any[], target, propertyKey: string) {
+    const parts = Reflect.getOwnMetadata(Metadata.PARTS, target, propertyKey) as PartValue[] || [];
+    for (const part of parts) {
+      if (part.index !== null) {
+        part.value = args[part.index] as Serializable;
       }
     }
   }
@@ -102,7 +137,7 @@ class Builder {
   private static setBodyValue(args: any[], target, propertyKey: string) {
     const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as BodyValue || null;
     if (body !== null) {
-      body.value = args[body.index];
+      body.value = args[body.index] as Serializable;
     }
   }
 
@@ -137,6 +172,14 @@ class Builder {
       };
     };
   }
+
+  public static buildMultipartDecorator() {
+    return () => {
+      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
+        Reflect.defineMetadata(Metadata.MULTIPART, true, target, propertyKey);
+      };
+    };
+  }
 }
 
 // Class decorators
@@ -150,6 +193,7 @@ export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
 export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);
 export const Headers = Builder.buildHeadersDecorator();
 export const FormUrlEncoded = Builder.buildFormUrlEncodedDecorator();
+export const Multipart = Builder.buildMultipartDecorator();
 
 // Parameter decorators
 export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
@@ -157,3 +201,4 @@ export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
 export const Header = Builder.buildParameterDecorator(Metadata.HEADERS);
 export const Body = Builder.buildBodyDecorator();
 export const Field = Builder.buildParameterDecorator(Metadata.FIELDS);
+export const Part = Builder.buildPartDecorator();

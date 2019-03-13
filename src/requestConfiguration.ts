@@ -1,6 +1,7 @@
 import { HTTPVerb } from './HTTPVerb';
 import { ParameterValue } from './values/parameterValue';
 import { BodyValue } from './values/bodyValue';
+import { PartValue } from './values/partValue';
 
 export class RequestConfiguration {
 
@@ -21,4 +22,8 @@ export class RequestConfiguration {
   public formUrlEncoded = false;
 
   public fields: ParameterValue[] = [];
+
+  public multipart = false;
+
+  public parts: PartValue[] = [];
 }

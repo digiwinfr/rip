@@ -7,11 +7,13 @@ export enum Metadata {
   URL = 'rip:url',
   HEADERS = 'rip:headers',
   FORM_URL_ENCODED = 'rip:formUrlEncoded',
+  MULTIPART = 'rip:multipart',
 
   PATHS = 'rip:paths',
   QUERIES = 'rip:queries',
   BODY = 'rip:body',
   FIELDS = 'rip:fields',
+  PARTS = 'rip:parts',
 
   CONFIGURATION = 'rip:configuration'
 }
