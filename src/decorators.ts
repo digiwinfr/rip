@@ -61,7 +61,7 @@ class Builder {
       this.setParametersValues(Metadata.HEADERS, args, target, propertyKey);
       this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
       this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
-      this.setParametersValues(Metadata.BODY, args, target, propertyKey);
+      this.setBodyValue(args, target, propertyKey);
 
       const configurator = new RequestConfigurator(target, propertyKey);
       const configuration = configurator.configure();
@@ -78,22 +78,21 @@ class Builder {
     }
   }
 
-  // TODO: it smells....to refactor
   private static setParametersValues(
-    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.BODY | Metadata.HEADERS,
+    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS,
     args: any[], target, propertyKey: string) {
-    const metadataValue = Reflect.getOwnMetadata(metadata, target, propertyKey);
-    if (metadataValue instanceof Array) {
-      for (const parameter of (metadataValue as Parameter[])) {
-        if (parameter.index !== null) {
-          parameter.value = args[parameter.index];
-        }
-      }
-    } else if (metadataValue !== undefined) {
-      const parameter = (metadataValue as Parameter);
+    const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as Parameter[] || [];
+    for (const parameter of parameters) {
       if (parameter.index !== null) {
         parameter.value = args[parameter.index];
       }
+    }
+  }
+
+  private static setBodyValue(args: any[], target, propertyKey: string) {
+    const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as Parameter || null;
+    if (body !== null) {
+      body.value = args[body.index];
     }
   }
 
