@@ -19,4 +19,6 @@ export class RequestConfiguration {
   public headers: ParameterValue[] = [];
 
   public formUrlEncoded = false;
+
+  public fields: ParameterValue[] = [];
 }

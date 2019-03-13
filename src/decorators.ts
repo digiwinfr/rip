@@ -27,7 +27,7 @@ class Builder {
     };
   }
 
-  public static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS) {
+  public static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS | Metadata.FIELDS) {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
         const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
@@ -41,7 +41,7 @@ class Builder {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
 
-        this.checkBodyCompatibility(target, propertyKey, verb);
+        this.checkDecoratorsCompatibilities(target, propertyKey, verb);
 
         Reflect.defineMetadata(Metadata.VERB, verb, target, propertyKey);
 
@@ -62,6 +62,7 @@ class Builder {
       this.setParametersValues(Metadata.HEADERS, args, target, propertyKey);
       this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
       this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
+      this.setParametersValues(Metadata.FIELDS, args, target, propertyKey);
       this.setBodyValue(args, target, propertyKey);
 
       const configurator = new RequestConfigurator(target, propertyKey);
@@ -73,14 +74,22 @@ class Builder {
     };
   }
 
-  private static checkBodyCompatibility(target, propertyKey: string, verb: HTTPVerb) {
+  private static checkDecoratorsCompatibilities(target, propertyKey: string, verb: HTTPVerb) {
     if (Reflect.hasMetadata(Metadata.BODY, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
       throw Error('@Body decorator is not compatible with @' + verb + ' decorator');
+    }
+
+    if (Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
+      throw Error('@FormUrlEncoded decorator is not compatible with @' + verb + ' decorator');
+    }
+
+    if (Reflect.hasMetadata(Metadata.FIELDS, target, propertyKey) && !Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey)) {
+      throw Error('@Field decorators must be used in combination with @FormUrlEncoded decorator');
     }
   }
 
   private static setParametersValues(
-    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS,
+    metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS | Metadata.FIELDS,
     args: any[], target, propertyKey: string) {
     const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
     for (const parameter of parameters) {
@@ -147,3 +156,4 @@ export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
 export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
 export const Header = Builder.buildParameterDecorator(Metadata.HEADERS);
 export const Body = Builder.buildBodyDecorator();
+export const Field = Builder.buildParameterDecorator(Metadata.FIELDS);

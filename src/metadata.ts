@@ -11,6 +11,7 @@ export enum Metadata {
   PATHS = 'rip:paths',
   QUERIES = 'rip:queries',
   BODY = 'rip:body',
+  FIELDS = 'rip:fields',
 
   CONFIGURATION = 'rip:configuration'
 }
