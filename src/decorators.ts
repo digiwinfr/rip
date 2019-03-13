@@ -20,10 +20,6 @@ class Builder {
   public static buildBodyDecorator() {
     return () => {
       return (target, propertyKey: string, index: number) => {
-        const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as BodyValue || null;
-        if (body !== null) {
-          throw Error('The method \'' + target.constructor.name + '.' + propertyKey + '\' has two @Body decorators');
-        }
         Reflect.defineMetadata(Metadata.BODY, new BodyValue(index), target, propertyKey);
       };
     };
@@ -52,8 +48,6 @@ class Builder {
   public static buildVerbDecorator(verb: HTTPVerb) {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-
-        this.checkDecoratorsCompatibilities(target, propertyKey, verb);
 
         Reflect.defineMetadata(Metadata.VERB, verb, target, propertyKey);
 
@@ -84,33 +78,6 @@ class Builder {
 
       return originalMethod.apply(this, args);
     };
-  }
-
-  private static checkDecoratorsCompatibilities(target, propertyKey: string, verb: HTTPVerb) {
-    if (Reflect.hasMetadata(Metadata.BODY, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
-      throw Error('@Body decorator is not compatible with @' + verb + ' decorator');
-    }
-
-    if (Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
-      throw Error('@FormUrlEncoded decorator is not compatible with @' + verb + ' decorator');
-    }
-
-    if (Reflect.hasMetadata(Metadata.MULTIPART, target, propertyKey) && (verb === HTTPVerb.GET || verb === HTTPVerb.HEAD)) {
-      throw Error('@Multipart decorator is not compatible with @' + verb + ' decorator');
-    }
-
-    if (Reflect.hasMetadata(Metadata.FIELDS, target, propertyKey) && !Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey)) {
-      throw Error('@Field decorators must be used in combination with @FormUrlEncoded decorator');
-    }
-
-    if (Reflect.hasMetadata(Metadata.PARTS, target, propertyKey) && !Reflect.hasMetadata(Metadata.MULTIPART, target, propertyKey)) {
-      throw Error('@Part decorators must be used in combination with @Multipart decorator');
-    }
-
-    if (Reflect.hasMetadata(Metadata.MULTIPART, target, propertyKey) &&
-      Reflect.hasMetadata(Metadata.FORM_URL_ENCODED, target, propertyKey)) {
-      throw Error('@Multipart and @FormUrlEncoded decorators cannot be used is combination');
-    }
   }
 
   private static setParametersValues(

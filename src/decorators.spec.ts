@@ -125,28 +125,6 @@ describe('Decorators apply metadata', () => {
     expect(configuration.body.value).toEqual(new Thing('stuff'));
   });
 
-  it('should failed because having two @Body decorators', () => {
-    const client = () => {
-      class FailingClient {
-        @POST('/thing')
-        send(@Body() thing: Thing, @Body() anotherThing: Thing) {
-        }
-      }
-    };
-    expect(client).toThrow('The method \'FailingClient.send\' has two @Body decorators');
-  });
-
-  it('should failed because @Body decorator is not compatible with @GET decorator', () => {
-    const client = () => {
-      class FailingClient {
-        @GET('/thing')
-        send(@Body() thing: Thing) {
-        }
-      }
-    };
-    expect(client).toThrow('@Body decorator is not compatible with @GET decorator');
-  });
-
 
   it('should configure request with a parameter header', () => {
 
@@ -255,18 +233,6 @@ describe('Decorators apply metadata', () => {
 
   });
 
-  it('should thrown an error because @FormUrlEncoded decorator is not compatible with @GET decorator', () => {
-    const client = () => {
-      class FailingClient {
-        @GET('/thing')
-        @FormUrlEncoded()
-        send(thing: Thing) {
-        }
-      }
-    };
-    expect(client).toThrow('@FormUrlEncoded decorator is not compatible with @GET decorator');
-  });
-
   it('should configure request as form url encoded with some fields', () => {
 
     class ThingClient {
@@ -289,17 +255,6 @@ describe('Decorators apply metadata', () => {
 
   });
 
-  it('should thrown an error because @Field decorators must be used with @FormUrlEncoded', () => {
-    const client = () => {
-      class FailingClient {
-        @POST('/thing')
-        send(@Field('field1') thing: Thing) {
-        }
-      }
-    };
-    expect(client).toThrow('@Field decorators must be used in combination with @FormUrlEncoded decorator');
-  });
-
   it('should configure request as multipart', () => {
 
     class ThingClient {
@@ -314,29 +269,6 @@ describe('Decorators apply metadata', () => {
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
     expect(configuration.multipart).toBe(true);
 
-  });
-
-  it('should thrown an error because @Multipart decorator is not compatible with @GET decorator', () => {
-    const client = () => {
-      class FailingClient {
-        @GET('/thing')
-        @Multipart()
-        send(thing: Thing) {
-        }
-      }
-    };
-    expect(client).toThrow('@Multipart decorator is not compatible with @GET decorator');
-  });
-
-  it('should thrown an error because @Part decorators must be used with @Multipart', () => {
-    const client = () => {
-      class FailingClient {
-        @POST('/thing')
-        send(@Part('field1') thing: Thing) {
-        }
-      }
-    };
-    expect(client).toThrow('@Part decorators must be used in combination with @Multipart decorator');
   });
 
   it('should configure request as multipart with some parts', () => {
@@ -357,19 +289,6 @@ describe('Decorators apply metadata', () => {
     expect(configuration.parts[1].key).toBe('part2');
     expect(configuration.parts[1].value).toEqual(new Thing('stuff 2'));
 
-  });
-
-  it('should thrown an error because @Multipart and @FormUrlEncoded decorators cannot be used is combination', () => {
-    const client = () => {
-      class FailingClient {
-        @POST('/thing')
-        @FormUrlEncoded()
-        @Multipart()
-        send() {
-        }
-      }
-    };
-    expect(client).toThrow('@Multipart and @FormUrlEncoded decorators cannot be used is combination');
   });
 
 });
