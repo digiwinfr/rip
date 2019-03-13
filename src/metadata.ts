@@ -6,6 +6,7 @@ export enum Metadata {
   VERB = 'rip:verb',
   URL = 'rip:url',
   HEADERS = 'rip:headers',
+  FORM_URL_ENCODED = 'rip:formUrlEncoded',
 
   PATHS = 'rip:paths',
   QUERIES = 'rip:queries',

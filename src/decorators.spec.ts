@@ -1,4 +1,4 @@
-import { BaseUrl, Body, GET, Header, Headers, Path, POST, Query } from './decorators';
+import { BaseUrl, Body, FormUrlEncoded, GET, Header, Headers, Path, POST, Query } from './decorators';
 import { RequestConfiguration } from './requestConfiguration';
 import { Metadata } from './metadata';
 import { HTTPVerb } from './HTTPVerb';
@@ -239,5 +239,20 @@ describe('Decorators apply metadata', () => {
 
   });
 
+  it('should configure request as form url encoded', () => {
+
+    class ThingClient {
+      @POST('/something')
+      @FormUrlEncoded()
+      postSomething() {
+      }
+    }
+
+    const client = new ThingClient();
+    client.postSomething();
+    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
+    expect(configuration.formUrlEncoded).toBe(true);
+
+  });
 
 });

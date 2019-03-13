@@ -17,4 +17,6 @@ export class RequestConfiguration {
   public body: BodyValue = null;
 
   public headers: ParameterValue[] = [];
+
+  public formUrlEncoded = false;
 }

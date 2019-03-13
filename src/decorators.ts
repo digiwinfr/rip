@@ -120,6 +120,14 @@ class Builder {
       };
     };
   }
+
+  public static buildFormUrlEncodedDecorator() {
+    return () => {
+      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
+        Reflect.defineMetadata(Metadata.FORM_URL_ENCODED, true, target, propertyKey);
+      };
+    };
+  }
 }
 
 // Class decorators
@@ -132,6 +140,7 @@ export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);
 export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
 export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);
 export const Headers = Builder.buildHeadersDecorator();
+export const FormUrlEncoded = Builder.buildFormUrlEncodedDecorator();
 
 // Parameter decorators
 export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
