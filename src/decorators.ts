@@ -74,8 +74,7 @@ class Builder {
       this.setParametersValues(Metadata.HEADERS, args, target, propertyKey);
       this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
       this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
-      this.setParametersValues(Metadata.FIELDS, args, target, propertyKey);
-      this.setPartsValues(args, target, propertyKey);
+
       this.setBodyValue(args, target, propertyKey);
 
       const configurator = new RequestConfigurator(target, propertyKey);
@@ -165,10 +164,31 @@ class Builder {
     };
   }
 
-  public static buildBooleanDecorator(metadata: Metadata.FORM_URL_ENCODED | Metadata.MULTIPART) {
+  public static buildMultipartDecorator() {
     return () => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-        Reflect.defineMetadata(metadata, true, target, propertyKey);
+        Reflect.defineMetadata(Metadata.MULTIPART, true, target, propertyKey);
+        const originalMethod = descriptor.value;
+        descriptor.value = (...args: any[]) => {
+          this.setPartsValues(args, target, propertyKey);
+          return originalMethod.apply(this, args);
+        };
+
+        return descriptor;
+      };
+    };
+  }
+
+  public static buildFormUrlEncodedDecorator() {
+    return () => {
+      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
+        Reflect.defineMetadata(Metadata.FORM_URL_ENCODED, true, target, propertyKey);
+        const originalMethod = descriptor.value;
+        descriptor.value = (...args: any[]) => {
+          this.setParametersValues(Metadata.FIELDS, args, target, propertyKey);
+          return originalMethod.apply(this, args);
+        };
+        return descriptor;
       };
     };
   }
@@ -184,8 +204,8 @@ export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);
 export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
 export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);
 export const Headers = Builder.buildHeadersDecorator();
-export const FormUrlEncoded = Builder.buildBooleanDecorator(Metadata.FORM_URL_ENCODED);
-export const Multipart = Builder.buildBooleanDecorator(Metadata.MULTIPART);
+export const FormUrlEncoded = Builder.buildFormUrlEncodedDecorator();
+export const Multipart = Builder.buildMultipartDecorator();
 
 // Parameter decorators
 export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
