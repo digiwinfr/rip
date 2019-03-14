@@ -146,22 +146,11 @@ The parts must implement the `Serializable` interface and define at least the bo
 You can set static headers for a method using the `@Headers` annotation.
 
 ```typescript
-@Headers({
-  'Cache-Control': 'max-age=640000'
-})
-@GET('/widget/list')
-widgetList() {
-  
-}
-```
-
-```typescript
-@Headers({
-    'Accept': 'application/vnd.github.v3.full+json',
-    'User-Agent': 'Retrofit-Sample-App'
-})
-@GET('/users/:username')
-getUser(@Path('username') username: string) {
+@Headers([
+  ['Cache-Control', 'max-age=640000']
+])
+@GET('/users')
+all() {
   
 }
 ```

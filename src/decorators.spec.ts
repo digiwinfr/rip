@@ -148,10 +148,10 @@ describe('Decorators apply metadata', () => {
 
     class ThingClient {
       @GET('/something')
-      @Headers({
-        header1: 'stuff 1',
-        header2: 'stuff 2'
-      })
+      @Headers([
+        ['header1', 'stuff 1'],
+        ['header2', 'stuff 2']
+      ])
       getSomething() {
       }
     }
@@ -192,10 +192,10 @@ describe('Decorators apply metadata', () => {
 
     class ThingClient {
       @GET('/something')
-      @Headers({
-        header4: 'stuff 1',
-        header1: 'stuff 2'
-      })
+      @Headers([
+        ['Cache-Control', 'max-age=640000'],
+        ['header2', 'stuff 1']
+      ])
       getSomething(@Header('header1') p1: string, @Header('header2') p2: string, @Header('header1') p3: string) {
       }
     }
@@ -212,8 +212,11 @@ describe('Decorators apply metadata', () => {
     expect(configuration.headers[2].key).toBe('header1');
     expect(configuration.headers[2].value).toBe('stuff 5');
 
-    expect(configuration.headers[3].key).toBe('header4');
-    expect(configuration.headers[3].value).toBe('stuff 1');
+    expect(configuration.headers[3].key).toBe('Cache-Control');
+    expect(configuration.headers[3].value).toBe('max-age=640000');
+
+    expect(configuration.headers[4].key).toBe('header2');
+    expect(configuration.headers[4].value).toBe('stuff 1');
 
   });
 

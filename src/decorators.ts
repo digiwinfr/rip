@@ -118,13 +118,11 @@ class Builder {
   }
 
   public static buildHeadersDecorator() {
-    return (object: {}) => {
+    return (headersArray: [string, string][]) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
         const headers = Reflect.getOwnMetadata(Metadata.HEADERS, target, propertyKey) || [];
-        for (const key in object) {
-          if (object.hasOwnProperty(key)) {
-            headers.push(new ParameterValue(null, key, object[key]));
-          }
+        for (const header of headersArray) {
+          headers.push(new ParameterValue(null, header[0], header[1]));
         }
         Reflect.defineMetadata(Metadata.HEADERS, headers, target, propertyKey);
       };
