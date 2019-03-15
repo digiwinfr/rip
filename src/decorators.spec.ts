@@ -1,7 +1,9 @@
-import { BaseUrl, Body, Field, FormUrlEncoded, GET, Header, Headers, Multipart, Part, Path, POST, Query } from './decorators';
+import * as fetchMock from './decorators';
+import { BaseUrl, Body, Builder, Field, FormUrlEncoded, GET, Header, Headers, Multipart, Part, Path, POST, Query } from './decorators';
 import { RequestConfiguration } from './requestConfiguration';
 import { Metadata } from './metadata';
 import { HTTPVerb } from './HTTPVerb';
+import { FetchMockAdapter } from './HTTPServices/fetchMockAdapter';
 
 class Thing {
   name: string;
@@ -13,6 +15,11 @@ class Thing {
 
 
 describe('Decorators apply metadata', () => {
+
+  beforeAll(() => {
+    const builder = Builder.getInstance();
+    builder.setHTTPService(new FetchMockAdapter(fetchMock));
+  });
 
   it('should configure GET request with a query', () => {
 

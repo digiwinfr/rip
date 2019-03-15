@@ -6,10 +6,29 @@ import { RequestConfigurator } from './requestConfigurator';
 import { BodyValue } from './values/bodyValue';
 import { PartValue } from './values/partValue';
 import { Serializable } from './serializable';
+import { HTTPService } from './HTTPServices/HTTPService';
 
-class Builder {
+export class Builder {
 
-  public static buildBaseUrlDecorator() {
+  private static instance: Builder = null;
+
+  private httpService: HTTPService;
+
+  private constructor() {
+  }
+
+  public static getInstance(): Builder {
+    if (this.instance === null) {
+      this.instance = new Builder();
+    }
+    return this.instance;
+  }
+
+  public setHTTPService(httpService: HTTPService) {
+    this.httpService = httpService;
+  }
+
+  public buildBaseUrlDecorator() {
     return (baseUrl: string) => {
       return (target) => {
         Reflect.defineMetadata(Metadata.BASE_URL, baseUrl, target);
@@ -17,7 +36,7 @@ class Builder {
     };
   }
 
-  public static buildBodyDecorator() {
+  public buildBodyDecorator() {
     return () => {
       return (target, propertyKey: string, index: number) => {
         Reflect.defineMetadata(Metadata.BODY, new BodyValue(index), target, propertyKey);
@@ -25,7 +44,7 @@ class Builder {
     };
   }
 
-  public static buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS | Metadata.FIELDS) {
+  public buildParameterDecorator(metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS | Metadata.FIELDS) {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
         const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
@@ -35,7 +54,7 @@ class Builder {
     };
   }
 
-  public static buildPartDecorator() {
+  public buildPartDecorator() {
     return (name: string) => {
       return (target, propertyKey: string, index: number) => {
         const parts = Reflect.getOwnMetadata(Metadata.PARTS, target, propertyKey) as PartValue[] || [];
@@ -45,7 +64,7 @@ class Builder {
     };
   }
 
-  public static buildVerbDecorator(verb: HTTPVerb) {
+  public buildVerbDecorator(verb: HTTPVerb) {
     return (url: string) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
 
@@ -60,7 +79,7 @@ class Builder {
     };
   }
 
-  private static verbDecoratorRuntime(originalMethod, target, propertyKey) {
+  private verbDecoratorRuntime(originalMethod, target, propertyKey) {
     return (...args: any[]) => {
       Reflect.deleteMetadata(Metadata.CONFIGURATION, target, propertyKey);
 
@@ -76,11 +95,13 @@ class Builder {
 
       Reflect.defineMetadata(Metadata.CONFIGURATION, configuration, target, propertyKey);
 
-      return originalMethod.apply(this, args);
+      originalMethod.apply(this, args);
+
+      return this.httpService.request(configuration);
     };
   }
 
-  private static setParametersValues(
+  private setParametersValues(
     metadata: Metadata.PATHS | Metadata.QUERIES | Metadata.HEADERS | Metadata.FIELDS,
     args: any[], target, propertyKey: string) {
     const parameters = Reflect.getOwnMetadata(metadata, target, propertyKey) as ParameterValue[] || [];
@@ -91,7 +112,7 @@ class Builder {
     }
   }
 
-  private static setPartsValues(args: any[], target, propertyKey: string) {
+  private setPartsValues(args: any[], target, propertyKey: string) {
     const parts = Reflect.getOwnMetadata(Metadata.PARTS, target, propertyKey) as PartValue[] || [];
     for (const part of parts) {
       if (part.index !== null) {
@@ -100,14 +121,14 @@ class Builder {
     }
   }
 
-  private static setBodyValue(args: any[], target, propertyKey: string) {
+  private setBodyValue(args: any[], target, propertyKey: string) {
     const body = Reflect.getOwnMetadata(Metadata.BODY, target, propertyKey) as BodyValue || null;
     if (body !== null) {
       body.value = args[body.index] as Serializable;
     }
   }
 
-  private static copyMetadataFromClassToMethod(target, propertyKey: string) {
+  private copyMetadataFromClassToMethod(target, propertyKey: string) {
     const classMetadataKeys = Reflect.getMetadataKeys(target.constructor);
     classMetadataKeys.forEach((key: string) => {
       if (key.startsWith(METADATA_PREFIX)) {
@@ -117,7 +138,7 @@ class Builder {
     });
   }
 
-  public static buildHeadersDecorator() {
+  public buildHeadersDecorator() {
     return (headersArray: [string, string][]) => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
         const headers = Reflect.getOwnMetadata(Metadata.HEADERS, target, propertyKey) || [];
@@ -129,7 +150,7 @@ class Builder {
     };
   }
 
-  public static buildMultipartDecorator() {
+  public buildMultipartDecorator() {
     return () => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
         Reflect.defineMetadata(Metadata.MULTIPART, true, target, propertyKey);
@@ -144,7 +165,7 @@ class Builder {
     };
   }
 
-  public static buildFormUrlEncodedDecorator() {
+  public buildFormUrlEncodedDecorator() {
     return () => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
         Reflect.defineMetadata(Metadata.FORM_URL_ENCODED, true, target, propertyKey);
@@ -159,23 +180,25 @@ class Builder {
   }
 }
 
+const builder = Builder.getInstance();
+
 // Class decorators
-export const BaseUrl = Builder.buildBaseUrlDecorator();
+export const BaseUrl = builder.buildBaseUrlDecorator();
 
 // Method decorators
-export const GET = Builder.buildVerbDecorator(HTTPVerb.GET);
-export const POST = Builder.buildVerbDecorator(HTTPVerb.POST);
-export const PATCH = Builder.buildVerbDecorator(HTTPVerb.PATCH);
-export const PUT = Builder.buildVerbDecorator(HTTPVerb.PUT);
-export const DELETE = Builder.buildVerbDecorator(HTTPVerb.DELETE);
-export const Headers = Builder.buildHeadersDecorator();
-export const FormUrlEncoded = Builder.buildFormUrlEncodedDecorator();
-export const Multipart = Builder.buildMultipartDecorator();
+export const GET = builder.buildVerbDecorator(HTTPVerb.GET);
+export const POST = builder.buildVerbDecorator(HTTPVerb.POST);
+export const PATCH = builder.buildVerbDecorator(HTTPVerb.PATCH);
+export const PUT = builder.buildVerbDecorator(HTTPVerb.PUT);
+export const DELETE = builder.buildVerbDecorator(HTTPVerb.DELETE);
+export const Headers = builder.buildHeadersDecorator();
+export const FormUrlEncoded = builder.buildFormUrlEncodedDecorator();
+export const Multipart = builder.buildMultipartDecorator();
 
 // Parameter decorators
-export const Query = Builder.buildParameterDecorator(Metadata.QUERIES);
-export const Path = Builder.buildParameterDecorator(Metadata.PATHS);
-export const Header = Builder.buildParameterDecorator(Metadata.HEADERS);
-export const Body = Builder.buildBodyDecorator();
-export const Field = Builder.buildParameterDecorator(Metadata.FIELDS);
-export const Part = Builder.buildPartDecorator();
+export const Query = builder.buildParameterDecorator(Metadata.QUERIES);
+export const Path = builder.buildParameterDecorator(Metadata.PATHS);
+export const Header = builder.buildParameterDecorator(Metadata.HEADERS);
+export const Body = builder.buildBodyDecorator();
+export const Field = builder.buildParameterDecorator(Metadata.FIELDS);
+export const Part = builder.buildPartDecorator();
