@@ -87,9 +87,9 @@ export class Builder {
       this.setParametersValues(Metadata.HEADERS, args, target, propertyKey);
       this.setParametersValues(Metadata.QUERIES, args, target, propertyKey);
       this.setParametersValues(Metadata.PATHS, args, target, propertyKey);
-
+      this.setParametersValues(Metadata.FIELDS, args, target, propertyKey);
+      this.setPartsValues(args, target, propertyKey);
       this.setBodyValue(args, target, propertyKey);
-
       const configurator = new RequestConfigurator(target, propertyKey);
       const configuration = configurator.configure();
 
@@ -154,13 +154,6 @@ export class Builder {
     return () => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
         Reflect.defineMetadata(Metadata.MULTIPART, true, target, propertyKey);
-        const originalMethod = descriptor.value;
-        descriptor.value = (...args: any[]) => {
-          this.setPartsValues(args, target, propertyKey);
-          return originalMethod.apply(this, args);
-        };
-
-        return descriptor;
       };
     };
   }
@@ -169,12 +162,6 @@ export class Builder {
     return () => {
       return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
         Reflect.defineMetadata(Metadata.FORM_URL_ENCODED, true, target, propertyKey);
-        const originalMethod = descriptor.value;
-        descriptor.value = (...args: any[]) => {
-          this.setParametersValues(Metadata.FIELDS, args, target, propertyKey);
-          return originalMethod.apply(this, args);
-        };
-        return descriptor;
       };
     };
   }

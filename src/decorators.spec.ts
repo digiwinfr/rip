@@ -1,9 +1,8 @@
-import * as fetchMock from './decorators';
 import { BaseUrl, Body, Builder, Field, FormUrlEncoded, GET, Header, Headers, Multipart, Part, Path, POST, Query } from './decorators';
 import { RequestConfiguration } from './requestConfiguration';
 import { Metadata } from './metadata';
 import { HTTPVerb } from './HTTPVerb';
-import { FetchMockAdapter } from './HTTPServices/fetchMockAdapter';
+import { StubHTTPService } from './HTTPServices/stubHTTPService';
 
 class Thing {
   name: string;
@@ -18,7 +17,7 @@ describe('Decorators apply metadata', () => {
 
   beforeAll(() => {
     const builder = Builder.getInstance();
-    builder.setHTTPService(new FetchMockAdapter(fetchMock));
+    builder.setHTTPService(new StubHTTPService());
   });
 
   it('should configure GET request with a query', () => {
@@ -38,10 +37,7 @@ describe('Decorators apply metadata', () => {
     expect(configuration.verb).toBe(HTTPVerb.GET);
     expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/things');
-
-    expect(configuration.queries[0].index).toBe(0);
-    expect(configuration.queries[0].key).toBe('sort');
-    expect(configuration.queries[0].value).toBe('name asc');
+    expect(configuration.queries['sort']).toBe('name asc');
   });
 
   it('should configure GET request with an undefined query', () => {
@@ -62,9 +58,7 @@ describe('Decorators apply metadata', () => {
     expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/things');
 
-    expect(configuration.queries[0].index).toBe(0);
-    expect(configuration.queries[0].key).toBe('sort');
-    expect(configuration.queries[0].value).toBe(undefined);
+    expect(configuration.queries['sort']).toBe(undefined);
   });
 
   it('should configure two consecutive GET requests with two paths', () => {
@@ -85,13 +79,8 @@ describe('Decorators apply metadata', () => {
     expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/thing/:id/:action');
 
-    expect(configuration.paths[0].index).toBe(0);
-    expect(configuration.paths[0].key).toBe('id');
-    expect(configuration.paths[0].value).toBe(1);
-
-    expect(configuration.paths[1].index).toBe(1);
-    expect(configuration.paths[1].key).toBe('action');
-    expect(configuration.paths[1].value).toBe('edit');
+    expect(configuration.paths['id']).toBe(1);
+    expect(configuration.paths['action']).toBe('edit');
 
     client.findById(2);
 
@@ -101,13 +90,9 @@ describe('Decorators apply metadata', () => {
     expect(configuration.baseUrl).toBe('http://localhost:8080');
     expect(configuration.url).toBe('/thing/:id/:action');
 
-    expect(configuration.paths[0].index).toBe(0);
-    expect(configuration.paths[0].key).toBe('id');
-    expect(configuration.paths[0].value).toBe(2);
+    expect(configuration.paths['id']).toBe(2);
 
-    expect(configuration.paths[1].index).toBe(1);
-    expect(configuration.paths[1].key).toBe('action');
-    expect(configuration.paths[1].value).toBe(undefined);
+    expect(configuration.paths['action']).toBe(undefined);
   });
 
   it('should configure POST request with a body', () => {
@@ -146,8 +131,7 @@ describe('Decorators apply metadata', () => {
 
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getToken');
 
-    expect(configuration.headers[0].key).toBe('Authorization');
-    expect(configuration.headers[0].value).toBe('Bearer abcedf');
+    expect(configuration.headers['Authorization']).toBe('Bearer abcedf');
   });
 
 
@@ -166,11 +150,9 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getSomething();
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
-    expect(configuration.headers[0].key).toBe('header1');
-    expect(configuration.headers[0].value).toBe('stuff 1');
 
-    expect(configuration.headers[1].key).toBe('header2');
-    expect(configuration.headers[1].value).toBe('stuff 2');
+    expect(configuration.headers['header1']).toBe('stuff 1');
+    expect(configuration.headers['header2']).toBe('stuff 2');
 
   });
 
@@ -185,14 +167,9 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getSomething('stuff 1', 'stuff 2', 'stuff 3');
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
-    expect(configuration.headers[0].key).toBe('header1');
-    expect(configuration.headers[0].value).toBe('stuff 1');
 
-    expect(configuration.headers[1].key).toBe('header2');
-    expect(configuration.headers[1].value).toBe('stuff 2');
-
-    expect(configuration.headers[2].key).toBe('header1');
-    expect(configuration.headers[2].value).toBe('stuff 3');
+    expect(configuration.headers['header1']).toBe('stuff 3');
+    expect(configuration.headers['header2']).toBe('stuff 2');
   });
 
   it('should configure request with multiple headers', () => {
@@ -210,21 +187,10 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getSomething('stuff 3', 'stuff 4', 'stuff 5');
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
-    expect(configuration.headers[0].key).toBe('header1');
-    expect(configuration.headers[0].value).toBe('stuff 3');
 
-    expect(configuration.headers[1].key).toBe('header2');
-    expect(configuration.headers[1].value).toBe('stuff 4');
-
-    expect(configuration.headers[2].key).toBe('header1');
-    expect(configuration.headers[2].value).toBe('stuff 5');
-
-    expect(configuration.headers[3].key).toBe('Cache-Control');
-    expect(configuration.headers[3].value).toBe('max-age=640000');
-
-    expect(configuration.headers[4].key).toBe('header2');
-    expect(configuration.headers[4].value).toBe('stuff 1');
-
+    expect(configuration.headers['header1']).toBe('stuff 5');
+    expect(configuration.headers['header2']).toBe('stuff 1');
+    expect(configuration.headers['Cache-Control']).toBe('max-age=640000');
   });
 
   it('should configure request as form url encoded', () => {
@@ -256,12 +222,9 @@ describe('Decorators apply metadata', () => {
     client.postSomething('stuff 1', 'stuff 2', 'stuff 3');
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
 
-    expect(configuration.fields[0].key).toBe('field1');
-    expect(configuration.fields[0].value).toBe('stuff 1');
-    expect(configuration.fields[1].key).toBe('field2');
-    expect(configuration.fields[1].value).toBe('stuff 2');
-    expect(configuration.fields[2].key).toBe('field1');
-    expect(configuration.fields[2].value).toBe('stuff 3');
+    expect(configuration.formUrlEncoded).toBe(true);
+    expect(configuration.fields['field1']).toBe('stuff 3');
+    expect(configuration.fields['field2']).toBe('stuff 2');
 
   });
 
@@ -294,10 +257,8 @@ describe('Decorators apply metadata', () => {
     client.postSomething(new Thing('stuff 1'), new Thing('stuff 2'));
     const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
 
-    expect(configuration.parts[0].key).toBe('part1');
-    expect(configuration.parts[0].value).toEqual(new Thing('stuff 1'));
-    expect(configuration.parts[1].key).toBe('part2');
-    expect(configuration.parts[1].value).toEqual(new Thing('stuff 2'));
+    expect(configuration.parts['part1']).toEqual(new Thing('stuff 1'));
+    expect(configuration.parts['part2']).toEqual(new Thing('stuff 2'));
 
   });
 
