@@ -1,7 +1,7 @@
-import { BaseUrl, Body, Builder, Field, FormUrlEncoded, GET, Header, Headers, Multipart, Part, Path, POST, Query } from './decorators';
-import { RequestConfiguration } from './requestConfiguration';
-import { Metadata } from './metadata';
-import { HTTPVerb } from './HTTPVerb';
+import { BaseUrl, Body, Field, FormUrlEncoded, GET, Header, Headers, Multipart, Part, Path, POST, Query, Rip } from './rip';
+import { RequestDefinition } from './requestDefinition';
+import { Metakey } from './metadata/metakey';
+import { HTTPMethod } from './HTTPMethod';
 import { StubHTTPService } from './HTTPServices/stubHTTPService';
 
 class Thing {
@@ -16,8 +16,8 @@ class Thing {
 describe('Decorators apply metadata', () => {
 
   beforeAll(() => {
-    const builder = Builder.getInstance();
-    builder.setHTTPService(new StubHTTPService());
+    const rip = Rip.getInstance();
+    rip.setHTTPService(new StubHTTPService());
   });
 
   it('should configure GET request with a query', () => {
@@ -32,11 +32,11 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.all('name asc');
 
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'all');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'all');
 
-    expect(configuration.verb).toBe(HTTPVerb.GET);
+    expect(configuration.method).toBe(HTTPMethod.GET);
     expect(configuration.baseUrl).toBe('http://localhost:8080');
-    expect(configuration.url).toBe('/things');
+    expect(configuration.relativeUrl).toBe('/things');
     expect(configuration.queries['sort']).toBe('name asc');
   });
 
@@ -52,11 +52,11 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.all();
 
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'all');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'all');
 
-    expect(configuration.verb).toBe(HTTPVerb.GET);
+    expect(configuration.method).toBe(HTTPMethod.GET);
     expect(configuration.baseUrl).toBe('http://localhost:8080');
-    expect(configuration.url).toBe('/things');
+    expect(configuration.relativeUrl).toBe('/things');
 
     expect(configuration.queries['sort']).toBe(undefined);
   });
@@ -73,22 +73,22 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.findById(1, 'edit');
 
-    let configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'findById');
+    let configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'findById');
 
-    expect(configuration.verb).toBe(HTTPVerb.GET);
+    expect(configuration.method).toBe(HTTPMethod.GET);
     expect(configuration.baseUrl).toBe('http://localhost:8080');
-    expect(configuration.url).toBe('/thing/:id/:action');
+    expect(configuration.relativeUrl).toBe('/thing/:id/:action');
 
     expect(configuration.paths['id']).toBe(1);
     expect(configuration.paths['action']).toBe('edit');
 
     client.findById(2);
 
-    configuration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'findById');
+    configuration = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'findById');
 
-    expect(configuration.verb).toBe(HTTPVerb.GET);
+    expect(configuration.method).toBe(HTTPMethod.GET);
     expect(configuration.baseUrl).toBe('http://localhost:8080');
-    expect(configuration.url).toBe('/thing/:id/:action');
+    expect(configuration.relativeUrl).toBe('/thing/:id/:action');
 
     expect(configuration.paths['id']).toBe(2);
 
@@ -107,19 +107,19 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.send(new Thing('stuff'));
 
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'send');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'send');
 
-    expect(configuration.verb).toBe(HTTPVerb.POST);
+    expect(configuration.method).toBe(HTTPMethod.POST);
     expect(configuration.baseUrl).toBe('http://localhost:8080');
-    expect(configuration.url).toBe('/thing');
+    expect(configuration.relativeUrl).toBe('/thing');
 
-    expect(configuration.body.index).toBe(0);
-    expect(configuration.body.value).toEqual(new Thing('stuff'));
+    expect(configuration.body).toEqual(JSON.stringify(new Thing('stuff')));
   });
 
 
   it('should configure request with a parameter header', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @GET('/token')
       getToken(@Header('Authorization') code: string) {
@@ -129,7 +129,7 @@ describe('Decorators apply metadata', () => {
     const client = new ThingClient();
     client.getToken('Bearer abcedf');
 
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getToken');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'getToken');
 
     expect(configuration.headers['Authorization']).toBe('Bearer abcedf');
   });
@@ -137,19 +137,20 @@ describe('Decorators apply metadata', () => {
 
   it('should configure request with headers', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @GET('/something')
-      @Headers([
-        ['header1', 'stuff 1'],
-        ['header2', 'stuff 2']
-      ])
+      @Headers({
+        header1: 'stuff 1',
+        header2: 'stuff 2'
+      })
       getSomething() {
       }
     }
 
     const client = new ThingClient();
     client.getSomething();
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'getSomething');
 
     expect(configuration.headers['header1']).toBe('stuff 1');
     expect(configuration.headers['header2']).toBe('stuff 2');
@@ -158,6 +159,7 @@ describe('Decorators apply metadata', () => {
 
   it('should configure request with some header parameters', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @GET('/something')
       getSomething(@Header('header1') p1: string, @Header('header2') p2: string, @Header('header1') p3: string) {
@@ -166,7 +168,7 @@ describe('Decorators apply metadata', () => {
 
     const client = new ThingClient();
     client.getSomething('stuff 1', 'stuff 2', 'stuff 3');
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'getSomething');
 
     expect(configuration.headers['header1']).toBe('stuff 3');
     expect(configuration.headers['header2']).toBe('stuff 2');
@@ -174,19 +176,20 @@ describe('Decorators apply metadata', () => {
 
   it('should configure request with multiple headers', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @GET('/something')
-      @Headers([
-        ['Cache-Control', 'max-age=640000'],
-        ['header2', 'stuff 1']
-      ])
+      @Headers({
+        'Cache-Control': 'max-age=640000',
+        'header2': 'stuff 1'
+      })
       getSomething(@Header('header1') p1: string, @Header('header2') p2: string, @Header('header1') p3: string) {
       }
     }
 
     const client = new ThingClient();
     client.getSomething('stuff 3', 'stuff 4', 'stuff 5');
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'getSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'getSomething');
 
     expect(configuration.headers['header1']).toBe('stuff 5');
     expect(configuration.headers['header2']).toBe('stuff 1');
@@ -195,6 +198,7 @@ describe('Decorators apply metadata', () => {
 
   it('should configure request as form url encoded', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @POST('/something')
       @FormUrlEncoded()
@@ -204,13 +208,14 @@ describe('Decorators apply metadata', () => {
 
     const client = new ThingClient();
     client.postSomething();
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'postSomething');
     expect(configuration.formUrlEncoded).toBe(true);
 
   });
 
   it('should configure request as form url encoded with some fields', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @POST('/something')
       @FormUrlEncoded()
@@ -220,7 +225,7 @@ describe('Decorators apply metadata', () => {
 
     const client = new ThingClient();
     client.postSomething('stuff 1', 'stuff 2', 'stuff 3');
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'postSomething');
 
     expect(configuration.formUrlEncoded).toBe(true);
     expect(configuration.fields['field1']).toBe('stuff 3');
@@ -230,6 +235,7 @@ describe('Decorators apply metadata', () => {
 
   it('should configure request as multipart', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @POST('/something')
       @Multipart()
@@ -239,13 +245,14 @@ describe('Decorators apply metadata', () => {
 
     const client = new ThingClient();
     client.postSomething();
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'postSomething');
     expect(configuration.multipart).toBe(true);
 
   });
 
   it('should configure request as multipart with some parts', () => {
 
+    @BaseUrl('http://localhost:8080')
     class ThingClient {
       @POST('/something')
       @Multipart()
@@ -255,10 +262,10 @@ describe('Decorators apply metadata', () => {
 
     const client = new ThingClient();
     client.postSomething(new Thing('stuff 1'), new Thing('stuff 2'));
-    const configuration: RequestConfiguration = Reflect.getMetadata(Metadata.CONFIGURATION, client, 'postSomething');
+    const configuration: RequestDefinition = Reflect.getMetadata(Metakey.CONFIGURATION, client, 'postSomething');
 
-    expect(configuration.parts['part1']).toEqual(new Thing('stuff 1'));
-    expect(configuration.parts['part2']).toEqual(new Thing('stuff 2'));
+    expect(configuration.parts['part1']).toEqual(JSON.stringify(new Thing('stuff 1')));
+    expect(configuration.parts['part2']).toEqual(JSON.stringify(new Thing('stuff 2')));
 
   });
 

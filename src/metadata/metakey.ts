@@ -1,10 +1,10 @@
-export const METADATA_PREFIX = 'rip:';
+export const METAKEY_PREFIX = 'rip:';
 
-export enum Metadata {
+export enum Metakey {
   BASE_URL = 'rip:baseUrl',
 
-  VERB = 'rip:verb',
-  URL = 'rip:url',
+  METHOD = 'rip:method',
+  RELATIVE_URL = 'rip:relativeUrl',
   HEADERS = 'rip:headers',
   FORM_URL_ENCODED = 'rip:formUrlEncoded',
   MULTIPART = 'rip:multipart',

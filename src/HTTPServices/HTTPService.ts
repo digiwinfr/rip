@@ -1,5 +1,8 @@
-import { RequestConfiguration } from '../requestConfiguration';
+import { Request } from '../request';
+import { Observable } from 'rxjs';
 
 export interface HTTPService {
-  request(configuration: RequestConfiguration);
+
+  request(request: Request): Observable<any>;
+
 }

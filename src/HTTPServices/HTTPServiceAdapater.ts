@@ -1,5 +1,5 @@
 import { HTTPService } from './HTTPService';
-import { RequestConfiguration } from '../requestConfiguration';
+import { Request } from '../request';
 
 export abstract class HTTPServiceAdapater implements HTTPService {
 
@@ -10,6 +10,6 @@ export abstract class HTTPServiceAdapater implements HTTPService {
     this.httpService = httpService;
   }
 
-  abstract request(configuration: RequestConfiguration);
+  abstract request(request: Request);
 
 }

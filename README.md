@@ -32,6 +32,18 @@ You must enable the experimentalDecorators compiler option in your tsconfig.json
 }
 ```
 
+## Configuration
+
+Rip does'nt depend on any http service. You can use a built-in service like fetch or xhr, or a library's adapter.
+
+You must configure the http service to use with RIP :
+ 
+### Use with fetch api
+
+```typescript
+const rip = Rip.getInstance();
+rip.setHTTPService(new FetchHTTPService());
+```
 
 ## API base url
 
@@ -86,7 +98,7 @@ getContents(@Path('category') category: string, @Query('sort') sort: string) {
 ```
 ### Request body
 
-An object can be specified for use as the HTTP request body with the `@Body` decorator.
+A parameter can be specified for use as the HTTP request body with the `@Body` decorator.
 
 ```typescript
 @POST('/users/new')
@@ -94,24 +106,20 @@ createUser(@Body user: User) {
 }
 ```
 
-This object must implement the `Serializable` interface and define at least the body of `serialize` method.
+This object can implement the `Serializable` interface and define the body of `serialize` method.
 
 ```typescript
 class User implements Serializable {
   
   public name: string;
   
-  public serialize(): {} {
-    return {
-      name: this.name
-    };
-  }
-  
-  public deserialize(object: {}) {
-    // not required for an object only used as a body
+  public serialize(): string {
+    return JSON.stringify(this);
   }
 }
 ```
+
+If not, this object will be serialized into a plain json object with the method JSON.stringify() or used as is if it's a scalar value (string, number, boolean) 
 
 ### Form url encoded and Multipart
 
@@ -139,7 +147,8 @@ updateUser(@Part('photo') photo: Photo, @Part('description') description: string
 }
 ```
 
-The parts must implement the `Serializable` interface and define at least the body of `serialize` method or must be strings.
+The parts can implement the `Serializable` interface and define the body of `serialize` method.
+If not, the part will be serialized into a plain json object with the method JSON.stringify() or used as is if it's a scalar value (string, number, boolean) 
 
 ### Header manipulation
 
