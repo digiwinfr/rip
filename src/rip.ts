@@ -6,6 +6,7 @@ import { MetadataReader } from './metadata/metadataReader';
 import { HTTPService } from './HTTPServices/HTTPService';
 import { Metadata } from './metadata/metadata';
 import { RequestBuilder } from './requestBuilder';
+import { Utils } from './utils';
 
 export class Rip {
 
@@ -142,6 +143,16 @@ export class Rip {
     };
   }
 
+  public buildDeserializeAsDecorator() {
+    return (clazz: any) => {
+      if (!Utils.isDeserializable(new clazz())) {
+        throw Error('The class used into @DeserializeAs must implements Deserializable');
+      }
+      return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
+        Reflect.defineMetadata(Metakey.DESERIALIZE_AS, new Metadata(clazz), target, propertyKey);
+      };
+    };
+  }
 }
 
 const rip = Rip.getInstance();
@@ -158,6 +169,7 @@ export const DELETE = rip.buildMethodDecorator(HTTPMethod.DELETE);
 export const Headers = rip.buildHeadersDecorator();
 export const FormUrlEncoded = rip.buildBooleanDecorator(Metakey.FORM_URL_ENCODED);
 export const Multipart = rip.buildBooleanDecorator(Metakey.MULTIPART);
+export const DeserializeAs = rip.buildDeserializeAsDecorator();
 
 // Parameter decorators
 export const Query = rip.buildParameterDecorator(Metakey.QUERIES);

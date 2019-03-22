@@ -12,7 +12,7 @@ export class Metadata {
 
   public toPrimitive(): any {
     let primitive = null;
-    if (Utils.isScalar(this.value)) {
+    if (Utils.isScalar(this.value) || typeof this.value === 'function') {
       primitive = this.value;
     } else if (Utils.isSerializable(this.value)) {
       primitive = (this.value as Serializable).serialize();

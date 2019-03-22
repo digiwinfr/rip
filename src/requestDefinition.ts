@@ -23,4 +23,6 @@ export class RequestDefinition {
   public multipart = false;
 
   public parts = {};
+
+  public deserializeAs = null;
 }

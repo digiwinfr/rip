@@ -15,5 +15,7 @@ export enum Metakey {
   FIELDS = 'rip:fields',
   PARTS = 'rip:parts',
 
+  DESERIALIZE_AS = 'rip:deserializeAs',
+
   CONFIGURATION = 'rip:configuration'
 }

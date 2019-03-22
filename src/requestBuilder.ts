@@ -11,6 +11,7 @@ export class RequestBuilder {
   constructor(definition: RequestDefinition) {
     this.definition = definition;
     this.request = new Request();
+    this.request.definition = definition;
     this.boundary = this.generateRandomBoundary();
   }
 
