@@ -2,7 +2,7 @@ import { RequestDefinition } from './requestDefinition';
 
 export class Request {
 
-  public definition: RequestDefinition;
+  public definition: RequestDefinition = null;
 
   public url = '';
 

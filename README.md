@@ -38,11 +38,18 @@ Rip does'nt depend on any http service. You can use a built-in service like fetc
 
 You must configure the http service to use with RIP :
  
-### Use with fetch api
+### Using with fetch api
 
 ```typescript
 const rip = Rip.getInstance();
 rip.setHTTPService(new FetchHTTPService());
+```
+
+### Using with XMLHttpRequest
+
+```typescript
+const rip = Rip.getInstance();
+rip.setHTTPService(new XhrHTTPService());
 ```
 
 ## API base url

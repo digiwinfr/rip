@@ -1,14 +1,8 @@
-import { Rip } from '../rip';
 import { FetchHTTPService } from './fetchHTTPService';
 import { Serializable } from '../serialization/serializable';
 import { Request } from '../request';
 
 describe('Request is send with fetch api', () => {
-
-  beforeAll(() => {
-    const builder = Rip.getInstance();
-    builder.setHTTPService(new FetchHTTPService());
-  });
 
   beforeEach(() => {
     fetchMock.resetMocks();
@@ -92,7 +86,7 @@ describe('Request is send with fetch api', () => {
     const request = new Request();
     request.url = 'http://locahost/stuff';
     request.method = 'POST';
-    request.body = 'Hello Wrold !';
+    request.body = 'Hello World !';
     service.request(request);
 
     const url = fetchMock.mock.calls[0][0];
@@ -101,6 +95,6 @@ describe('Request is send with fetch api', () => {
     expect(url).toBe('http://locahost/stuff');
     expect(config.method).toBe('POST');
 
-    expect(config.body).toBe('Hello Wrold !');
+    expect(config.body).toBe('Hello World !');
   });
 });

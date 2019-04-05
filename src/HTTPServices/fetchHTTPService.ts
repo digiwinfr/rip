@@ -13,14 +13,18 @@ export class FetchHTTPService implements HTTPService {
       body: request.body
     })
       .then(response => {
-        if (request.definition.deserializeAs !== null) {
-          const object = new request.definition.deserializeAs();
-          object.deserialize(response.body);
-          subject.next(object);
+        if (response.status === 200) {
+          if (request.definition != null && request.definition.deserializeAs !== null) {
+            const object = new request.definition.deserializeAs();
+            object.deserialize(response.body);
+            subject.next(object);
+          } else {
+            subject.next(response.body);
+          }
+          subject.complete();
         } else {
-          subject.next(response.body);
+          subject.error(response.body);
         }
-        subject.complete();
       })
       .catch(error => subject.error(error));
 
