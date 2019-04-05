@@ -52,6 +52,42 @@ const rip = Rip.getInstance();
 rip.setHTTPService(new XhrHTTPService());
 ```
 
+### Using with Angular HTTP *(Coming soon)*
+
+**In a service**
+```typescript
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+@Injectable({
+  providedIn: 'root'
+})
+export MyClient {
+
+  constructor(private http: HttpClient) {
+    const rip = Rip.getInstance();
+    rip.setHTTPService(new AngularHTTPClientAdapter(http));
+  }
+  ...
+}
+```
+**Or in your app.module**
+
+```typescript
+import { Injector } from '@angular/core';
+...
+export class AppModule {
+  constructor(private injector: Injector)
+  {
+    const http = injector.get<HttpClient>(HttpClient);
+    const rip = Rip.getInstance();
+    rip.setHTTPService(new AngularHTTPClientAdapter(http));
+  }
+}
+```
+
+*You can also write your own adapter inheriting the HTTPServiceAdapater abstract class.*
+
 ## API base url
 
 The base url of your api must be defined with the `@BaseUrl` class decorator. 
